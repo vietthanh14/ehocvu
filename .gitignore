@@ -1,0 +1,13 @@
+# Dependencies
+/vendor/
+
+# Cache files
+/cache/
+
+# Auth credentials
+*.json
+!composer.json
+
+# IDE
+.vscode/
+.idea/
