@@ -265,6 +265,80 @@ class GoogleSheetService {
     }
 
     /**
+     * Cập nhật số điện thoại sinh viên trong Sheet1
+     */
+    public function updateStudentPhone(string $maSv, string $newPhone): bool {
+        $values = $this->fetchStudentListSheet();
+        if (empty($values)) return false;
+
+        $headers = $values[0];
+        $maSvIndex = -1;
+        $sdtIndex = -1;
+
+        // Xác định cột Mã SV và cột SĐT
+        foreach ($headers as $colIndex => $colName) {
+            $n = strtolower(trim($colName));
+            if ($maSvIndex === -1 && (strpos($n, 'mã sv') !== false || strpos($n, 'mã sinh viên') !== false || strpos($n, 'ma sv') !== false)) {
+                $maSvIndex = $colIndex;
+            }
+            if ($sdtIndex === -1 && (strpos($n, 'sđt') !== false || strpos($n, 'sdt') !== false || strpos($n, 'điện thoại') !== false)) {
+                $sdtIndex = $colIndex;
+            }
+        }
+
+        if ($maSvIndex === -1 || $sdtIndex === -1) {
+            error_log("Google Sheets Error: Không tìm thấy cột Mã SV hoặc SĐT");
+            return false;
+        }
+
+        $targetRow = -1;
+        foreach ($values as $index => $row) {
+            if ($index === 0) continue;
+            $currentMaSv = isset($row[$maSvIndex]) ? trim($row[$maSvIndex]) : '';
+            if (strtolower($currentMaSv) === strtolower(trim($maSv))) {
+                $targetRow = $index + 1; // Google Sheets là 1-based index
+                break;
+            }
+        }
+
+        if ($targetRow === -1) {
+            return false;
+        }
+
+        // Chuyển đổi $sdtIndex sang ký tự Cột (0=A, 1=B, ..., 26=AA)
+        $colChar = '';
+        $temp = $sdtIndex;
+        while ($temp >= 0) {
+            $colChar = chr(65 + ($temp % 26)) . $colChar;
+            $temp = intdiv($temp, 26) - 1;
+        }
+
+        $sheetParts = explode('!', SHEET_STUDENT_LIST);
+        $sheetName = $sheetParts[0];
+        $updateRange = $sheetName . '!' . $colChar . $targetRow;
+
+        $body = new \Google_Service_Sheets_ValueRange([
+            'values' => [[$newPhone]]
+        ]);
+        
+        try {
+            $this->service->spreadsheets_values->update(
+                $this->spreadsheetId,
+                $updateRange,
+                $body,
+                ['valueInputOption' => 'USER_ENTERED']
+            );
+            
+            // Xóa cache để làm mới ds sinh viên trong phiên kế tiếp
+            $this->cacheClear('student_list');
+            return true;
+        } catch (Exception $e) {
+            error_log("Google Sheets Error updateStudentPhone: " . $e->getMessage());
+            return false;
+        }
+    }
+
+    /**
      * Kiểm tra sinh viên có trong danh sách bị xóa tên hay không
      */
     public function isExpelled($maSv) {
