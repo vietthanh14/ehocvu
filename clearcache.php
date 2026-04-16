@@ -3,6 +3,7 @@
  * Xóa toàn bộ cache của hệ thống.
  * Yêu cầu đăng nhập để sử dụng.
  */
+require_once __DIR__ . '/config.php';
 session_start();
 
 if (!isset($_SESSION['student'])) {
