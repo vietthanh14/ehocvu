@@ -35,7 +35,7 @@ $studentInfo = $service->getStudentInfo($maSv);
 if ($studentInfo === null) {
     echo json_encode([
         'success' => false,
-        'message' => 'Lỗi kỹ thuật: Không thể kết nối với dịch vụ của Google hoặc Mã SV không tồn tại (Gợi ý: Lỗi do đồng hồ máy tính sai năm 2026 khiến Google chặn).'
+        'message' => 'Lỗi kết nối API: Google Server từ chối Private Key (Exposed/vô hiệu hóa) hoặc cấu hình JSON sai.'
     ]);
     exit;
 }

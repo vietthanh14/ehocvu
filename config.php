@@ -19,7 +19,7 @@ session_set_cookie_params([
 define('SPREADSHEET_ID', '1ksjiYCVIDqfdsWTx260YOpBGqj83PrcM5MCdZQyL5j0');
 
 // Đường dẫn tới file JSON xác thực của Service Account
-define('GOOGLE_AUTH_JSON_PATH', __DIR__ . '/serious-app-415103-baf99d68d251.json');
+define('GOOGLE_AUTH_JSON_PATH', __DIR__ . '/serious-app-415103-05cba52d248a.json');
 
 // Tên các Sheet (Tab) trong Google Sheet của bạn
 // Bạn cần đổi tên này cho khớp chính xác với tên Tab trên Google Sheet
