@@ -4,14 +4,12 @@
 // Múi giờ Việt Nam
 date_default_timezone_set('Asia/Ho_Chi_Minh');
 
-// Cấu hình an toàn cho Session Cookie (Chống XSS/CSRF Leak)
+// Cấu hình an toàn tương thích tốt với Cloudflare và cPanel
 session_set_cookie_params([
     'lifetime' => 0,
-    'path' => '/',
-    'domain' => $_SERVER['HTTP_HOST'] ?? '',
-    'secure' => isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on',
+    'path'     => '/',
     'httponly' => true,
-    'samesite' => 'Strict'
+    'samesite' => 'Lax'
 ]);
 
 // Vui lòng cập nhật ID của Google Sheet nằm ở trên URL
