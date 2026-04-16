@@ -21,21 +21,29 @@ if (empty($maSv)) {
 $service = GoogleSheetService::getInstance();
 
 // 1. Kiểm tra dính án kỉ luật
-if ($service->isExpelled($maSv)) {
+try {
+    if ($service->isExpelled($maSv)) {
+        echo json_encode([
+            'success' => false,
+            'message' => 'Sinh viên đang trong danh sách bị xóa tên hoặc buộc thôi học! Không thể đăng ký thủ tục.'
+        ]);
+        exit;
+    }
+
+    // 2. Lấy thông tin
+    $studentInfo = $service->getStudentInfo($maSv);
+} catch (Exception $e) {
     echo json_encode([
         'success' => false,
-        'message' => 'Sinh viên đang trong danh sách bị xóa tên hoặc buộc thôi học! Không thể đăng ký thủ tục.'
+        'message' => 'Lỗi kết nối Server: Google API từ chối quyền truy cập hoặc cấu hình sai (Chi tiết: ' . $e->getMessage() . ')'
     ]);
     exit;
 }
 
-// 2. Lấy thông tin
-$studentInfo = $service->getStudentInfo($maSv);
-
 if ($studentInfo === null) {
     echo json_encode([
         'success' => false,
-        'message' => 'Lỗi kết nối API: Google Server từ chối Private Key (Exposed/vô hiệu hóa) hoặc cấu hình JSON sai.'
+        'message' => 'Mã Sinh viên không tồn tại trong hệ thống. Vui lòng kiểm tra lại.'
     ]);
     exit;
 }

@@ -142,7 +142,7 @@ class GoogleSheetService {
             return $values ?: null;
         } catch (Exception $e) {
             error_log("Google Sheets Error fetchStudentListSheet: " . $e->getMessage());
-            return null;
+            throw new Exception("Lỗi kết nối Google Sheets: " . $e->getMessage());
         }
     }
 
@@ -168,7 +168,7 @@ class GoogleSheetService {
             return $values ?: null;
         } catch (Exception $e) {
             error_log("Google Sheets Error fetchExpelledListSheet: " . $e->getMessage());
-            return null;
+            throw new Exception("Lỗi kết nối Google Sheets: " . $e->getMessage());
         }
     }
 
@@ -194,7 +194,7 @@ class GoogleSheetService {
             return $values ?: null;
         } catch (Exception $e) {
             error_log("Google Sheets Error fetchRequestListSheet: " . $e->getMessage());
-            return null;
+            throw new Exception("Lỗi kết nối Google Sheets: " . $e->getMessage());
         }
     }
 
