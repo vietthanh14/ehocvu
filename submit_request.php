@@ -61,6 +61,10 @@ if ($hasFile) {
 } elseif (isset($_FILES['file_don']) && $_FILES['file_don']['error'] !== UPLOAD_ERR_NO_FILE) {
     echo json_encode(['success' => false, 'message' => 'Lỗi khi tải file lên. Mã lỗi: ' . $_FILES['file_don']['error']]);
     exit;
+} else {
+    // Bắt buộc phải có file minh chứng theo đúng luồng
+    echo json_encode(['success' => false, 'message' => 'Lỗi: Vui lòng đính kèm file đơn đăng ký.']);
+    exit;
 }
 
 // === Kiểm tra nghiệp vụ TRƯỚC khi upload ===
@@ -99,13 +103,13 @@ if ($loaiYeuCau === 'Tiếp tục học sau bảo lưu' && !$eligibility['canSub
     exit;
 }
 
-// === Chống double-submit ===
-$submitKey = 'last_submit_' . md5($maSv . $loaiYeuCau);
+// === Chống double-submit (Lock 30s trên toàn tài khoản) ===
+$submitKey = 'last_submit_' . md5($maSv);
 $now = time();
 if (isset($_SESSION[$submitKey]) && ($now - $_SESSION[$submitKey]) < 30) {
     echo json_encode([
         'success' => false,
-        'message' => 'Bạn vừa nộp đơn cách đây chưa đầy 30 giây. Vui lòng chờ một chút.'
+        'message' => 'Bạn vừa nộp đơn cách đây chưa đầy 30 giây. Vui lòng chờ một chút để hệ thống xử lý.'
     ]);
     exit;
 }
@@ -141,8 +145,8 @@ $data = [
     'ly_do'                 => $lyDo
 ];
 
-$closePrevious = ($loaiYeuCau === 'Tiếp tục học sau bảo lưu');
-$success = $service->submitRequestAtomic($data, $closePrevious);
+// Ghi dữ liệu vào Google Sheet
+$success = $service->appendRequest($data);
 
 if ($success) {
     $_SESSION[$submitKey] = $now;

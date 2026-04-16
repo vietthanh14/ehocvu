@@ -39,7 +39,8 @@ if (!$studentInfo) {
     exit;
 }
 
-// Lưu session
+// Lưu session bảo mật
+session_regenerate_id(true);
 $_SESSION['student'] = $studentInfo;
 
 echo json_encode([

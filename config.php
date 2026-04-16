@@ -4,6 +4,16 @@
 // Múi giờ Việt Nam
 date_default_timezone_set('Asia/Ho_Chi_Minh');
 
+// Cấu hình an toàn cho Session Cookie (Chống XSS/CSRF Leak)
+session_set_cookie_params([
+    'lifetime' => 0,
+    'path' => '/',
+    'domain' => $_SERVER['HTTP_HOST'] ?? '',
+    'secure' => isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on',
+    'httponly' => true,
+    'samesite' => 'Strict'
+]);
+
 // Vui lòng cập nhật ID của Google Sheet nằm ở trên URL
 // Ví dụ: https://docs.google.com/spreadsheets/d/1BxiMVs0XRA5nFMdKvBdBZjgmUUqptlbs74OgvE2upms/edit -> ID là: 1BxiMVs0XRA5nFMdKvBdBZjgmUUqptlbs74OgvE2upms
 define('SPREADSHEET_ID', '1ksjiYCVIDqfdsWTx260YOpBGqj83PrcM5MCdZQyL5j0');
