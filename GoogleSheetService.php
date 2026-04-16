@@ -344,6 +344,49 @@ class GoogleSheetService {
     }
 
     /**
+     * Timeline Analysis: Tính toán trạng thái bảo lưu/đi học dựa trên sự kiện (Event Sourcing).
+     */
+    public function getStudentSubmitEligibility(string $maSv): array {
+        $requests = $this->getStudentRequests($maSv); // Trả về danh sách đã reverse (MỚI NHẤT đứng đầu)
+        $pendingTypes = [];
+        $coQDBaoLuu = false; // Trạng thái "đang trong thời gian bảo lưu"
+        
+        // Cờ để chỉ bắt lấy trạng thái đã chốt gần nhất
+        $resolvedStateFound = false; 
+
+        foreach ($requests as $req) {
+            $ttLower = mb_strtolower(trim($req['trang_thai']));
+            $reqType = trim($req['loai_yeu_cau']);
+            $isPending = (mb_strpos($ttLower, 'chờ') !== false);
+
+            if ($isPending) {
+                // Thu thập TẤT CẢ các đơn đang chờ
+                $pendingTypes[] = $reqType;
+            }
+
+            // Phân tích trạng thái đã chốt gần nhất (Event Sourcing)
+            if (!$resolvedStateFound && !$isPending && (mb_strpos($ttLower, 'duyệt') !== false || mb_strpos($ttLower, 'thành công') !== false || mb_strpos($ttLower, 'xong') !== false)) {
+                if ($reqType === 'Bảo lưu kết quả học tập') {
+                    $coQDBaoLuu = true; // Sự kiện gần nhất là Bảo lưu => Đang bảo lưu
+                } elseif ($reqType === 'Tiếp tục học sau bảo lưu') {
+                    $coQDBaoLuu = false; // Sự kiện gần nhất là Tiếp tục học => Hết quyển bảo lưu
+                }
+                $resolvedStateFound = true; // Đã tìm thấy trạng thái chốt gần nhất
+            }
+        }
+
+        $isTiepTucHocPending = in_array('Tiếp tục học sau bảo lưu', $pendingTypes);
+
+        return [
+            'pendingTypes'        => $pendingTypes,
+            'coQDBaoLuu'          => $coQDBaoLuu,
+            'isTiepTucHocPending' => $isTiepTucHocPending,
+            'canSubmitBaoLuu'     => !$coQDBaoLuu && !$isTiepTucHocPending && !in_array('Bảo lưu kết quả học tập', $pendingTypes),
+            'canSubmitTiepTuc'    => $coQDBaoLuu && !in_array('Tiếp tục học sau bảo lưu', $pendingTypes),
+        ];
+    }
+
+    /**
      * Lấy danh sách các yêu cầu/thủ tục đã đăng ký của một sinh viên
      */
     public function getStudentRequests($maSv) {
