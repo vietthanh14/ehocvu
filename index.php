@@ -1,5 +1,7 @@
 <?php
 require_once __DIR__ . '/config.php';
+header("Cache-Control: no-store, no-cache, must-revalidate, max-age=0");
+header("Pragma: no-cache");
 session_start();
 if (isset($_SESSION['student'])) {
     header('Location: dashboard.php');

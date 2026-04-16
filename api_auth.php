@@ -18,6 +18,16 @@ $rateLimitFile = __DIR__ . '/cache/rate_limit_' . $ipHash . '.json';
 $attempts = 0;
 $lockoutTime = 0;
 
+// Tự động dọn file rate_limit cũ hơn 1 giờ (xác suất 1/10 request để không ảnh hưởng hiệu năng)
+if (mt_rand(1, 10) === 1) {
+    $oldFiles = glob(__DIR__ . '/cache/rate_limit_*.json');
+    foreach ($oldFiles as $f) {
+        if (filemtime($f) < time() - 3600) {
+            @unlink($f);
+        }
+    }
+}
+
 if (file_exists($rateLimitFile)) {
     $rData = json_decode(file_get_contents($rateLimitFile), true);
     if ($rData) {
