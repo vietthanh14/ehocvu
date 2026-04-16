@@ -4,6 +4,11 @@
 // Múi giờ Việt Nam
 date_default_timezone_set('Asia/Ho_Chi_Minh');
 
+// Ép Cloudflare và Trình duyệt KHÔNG cache các trang PHP để tránh bị kẹt URL
+header("Cache-Control: no-store, no-cache, must-revalidate, max-age=0");
+header("Cache-Control: post-check=0, pre-check=0", false);
+header("Pragma: no-cache");
+
 // Cấu hình an toàn tương thích tốt với Cloudflare và cPanel
 session_set_cookie_params([
     'lifetime' => 0,
