@@ -336,6 +336,55 @@ class GoogleSheetService {
             $values[$targetRow - 1][$sdtIndex] = $newPhone;
             $this->cacheSet('student_list', $values);
             
+            // --- ĐỒNG BỘ SĐT SANG SHEET 3 ---
+            try {
+                $reqValues = $this->fetchRequestListSheet();
+                if (!empty($reqValues)) {
+                    $C = self::REQ_COL;
+                    $sheetParts3 = explode('!', SHEET_REQUEST_LIST);
+                    $sheet3Name = $sheetParts3[0];
+                    $sdtColChar3 = chr(65 + $C['SDT']); // 'E'
+                    
+                    $batchData = [];
+                    $hasChange = false;
+
+                    foreach ($reqValues as $i => $r) {
+                        if ($i === 0) continue;
+                        $reqMaSv = isset($r[$C['MA_SV']]) ? trim($r[$C['MA_SV']]) : '';
+                        if (strtolower($reqMaSv) === strtolower(trim($maSv))) {
+                            $rowNum = $i + 1;
+                            $range3 = $sheet3Name . '!' . $sdtColChar3 . $rowNum;
+                            $batchData[] = new \Google_Service_Sheets_ValueRange([
+                                'range' => $range3,
+                                'values' => [[$newPhone]]
+                            ]);
+                            
+                            // Edit in-place cache
+                            while (count($reqValues[$i]) <= $C['SDT']) {
+                                $reqValues[$i][] = '';
+                            }
+                            $reqValues[$i][$C['SDT']] = $newPhone;
+                            $hasChange = true;
+                        }
+                    }
+
+                    if (!empty($batchData)) {
+                        $batchBody = new \Google_Service_Sheets_BatchUpdateValuesRequest([
+                            'valueInputOption' => 'USER_ENTERED',
+                            'data' => $batchData
+                        ]);
+                        $this->service->spreadsheets_values->batchUpdate($this->spreadsheetId, $batchBody);
+                        
+                        if ($hasChange) {
+                            $this->cacheSet('requests_all', $reqValues);
+                        }
+                    }
+                }
+            } catch (Exception $eSync) {
+                // Lỗi đồng bộ Sheet 3 không ảnh hưởng kết quả trả về của thao tác chính
+                error_log("Google Sheets Sync Error (Sheet3): " . $eSync->getMessage());
+            }
+
             return true;
         } catch (Exception $e) {
             error_log("Google Sheets Error updateStudentPhone: " . $e->getMessage());
