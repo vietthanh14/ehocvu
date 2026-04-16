@@ -1,0 +1,10 @@
+# Chặn truy cập trực tiếp file nhạy cảm (.json, .lock)
+<FilesMatch "\.(json|lock)$">
+    Require all denied
+</FilesMatch>
+
+# Chặn truy cập các thư mục nhạy cảm
+<IfModule mod_rewrite.c>
+    RewriteEngine On
+    RewriteRule ^(cache|\.git|\.agent|vendor)/ - [F,L]
+</IfModule>

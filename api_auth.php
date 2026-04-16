@@ -2,17 +2,22 @@
 session_start();
 header('Content-Type: application/json; charset=utf-8');
 
+// Chỉ chấp nhận POST để tránh mã SV lộ trong URL/logs
+if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+    echo json_encode(['success' => false, 'message' => 'Chỉ hỗ trợ phương thức POST.']);
+    exit;
+}
+
 require_once __DIR__ . '/GoogleSheetService.php';
 
-// Chấp nhận cả GET (backward compat) và POST
-$maSv = trim($_POST['ma_sv'] ?? $_GET['ma_sv'] ?? '');
+$maSv = trim($_POST['ma_sv'] ?? '');
 
 if (empty($maSv)) {
     echo json_encode(['success' => false, 'message' => 'Vui lòng cung cấp Mã Sinh Viên.']);
     exit;
 }
 
-$service = new GoogleSheetService();
+$service = GoogleSheetService::getInstance();
 
 // 1. Kiểm tra dính án kỉ luật
 if ($service->isExpelled($maSv)) {

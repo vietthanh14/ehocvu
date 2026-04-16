@@ -3,18 +3,51 @@ require_once __DIR__ . '/vendor/autoload.php';
 require_once __DIR__ . '/config.php';
 
 class GoogleSheetService {
+    private static ?self $instance = null;
+
+    /** @var \Google_Service_Sheets */
     private $service;
+
+    /** @var string */
     private $spreadsheetId;
 
-    /** Thư mục lưu cache */
+    /** @var string */
     private $cacheDir;
 
-    /** TTL cache (giây) cho từng loại dữ liệu */
     private const CACHE_TTL = [
-        'student_list' => 600,   // 10 phút — thông tin SV ít thay đổi
-        'expelled_list' => 900,  // 15 phút — DS bị xóa tên rất ít đổi
-        'requests'      => 120,  // 2 phút  — cập nhật thường xuyên hơn
+        'student_list' => 600,
+        'expelled_list' => 900,
+        'requests'      => 120,
     ];
+
+    /** Column index mapping cho Sheet3 (DS yêu cầu) */
+    private const REQ_COL = [
+        'TIMESTAMP'    => 0,
+        'MA_SV'        => 1,
+        'HO_TEN'       => 2,
+        'NGAY_SINH'    => 3,
+        'SDT'          => 4,
+        'TEN_KHOA'     => 5,
+        'TEN_HE'       => 6,
+        'TEN_LOP'      => 7,
+        'CHUYEN_NGANH' => 8,
+        'NIEN_KHOA'    => 9,
+        'LOAI_YC'      => 10,
+        'BL_DEN'       => 11,
+        'LINK_DON'     => 12,
+        'TRANG_THAI'   => 13,
+        'GHI_CHU'      => 14,
+        'SO_QD'        => 15,
+        'NGAY_QD'      => 16,
+        'LINK_QD'      => 17,
+    ];
+
+    public static function getInstance(): self {
+        if (self::$instance === null) {
+            self::$instance = new self();
+        }
+        return self::$instance;
+    }
 
     public function __construct() {
         $client = new \Google_Client();
@@ -236,21 +269,30 @@ class GoogleSheetService {
      */
     public function isExpelled($maSv) {
         $values = $this->fetchExpelledListSheet();
+        if (empty($values)) return false;
 
-        if (empty($values)) {
-            return false;
+        // Header detection linh hoạt thay vì hardcode column index
+        $headers = $values[0];
+        $maSvIndex = -1;
+        foreach ($headers as $colIndex => $colName) {
+            $n = strtolower(trim($colName));
+            if (strpos($n, 'mã sv') !== false || strpos($n, 'mã sinh viên') !== false ||
+                strpos($n, 'ma sv') !== false || strpos($n, 'mssv') !== false) {
+                $maSvIndex = $colIndex;
+                break;
+            }
+        }
+        if ($maSvIndex === -1 && count($headers) >= 8) {
+            $maSvIndex = 7; // Fallback
         }
 
         foreach ($values as $index => $row) {
             if ($index === 0) continue;
-
-            $currentMaSv = isset($row[7]) ? trim($row[7]) : '';
-
+            $currentMaSv = isset($row[$maSvIndex]) ? trim($row[$maSvIndex]) : '';
             if (strtolower($currentMaSv) === strtolower(trim($maSv))) {
                 return true;
             }
         }
-
         return false;
     }
 
@@ -277,7 +319,8 @@ class GoogleSheetService {
                     $data['thoi_gian_bao_luu_den'] ?? '',
                     $data['link_don_dang_ky'] ?? '',
                     'Chờ duyệt',
-                    '', '', '', ''
+                    $data['ly_do'] ?? '',
+                    '', '', ''
                 ]
             ];
 
@@ -305,81 +348,175 @@ class GoogleSheetService {
      */
     public function getStudentRequests($maSv) {
         $values = $this->fetchRequestListSheet();
-
         $requests = [];
+        if (empty($values)) return $requests;
 
-        if (empty($values)) {
-            return $requests;
-        }
-
+        $C = self::REQ_COL;
         foreach ($values as $index => $row) {
             if ($index === 0) continue;
-
-            $currentMaSv = isset($row[1]) ? trim($row[1]) : '';
-
+            $currentMaSv = isset($row[$C['MA_SV']]) ? trim($row[$C['MA_SV']]) : '';
             if (strtolower($currentMaSv) === strtolower(trim($maSv))) {
                 $requests[] = [
-                    'thoi_gian' => isset($row[0]) ? $row[0] : '',
-                    'loai_yeu_cau' => isset($row[10]) ? $row[10] : '',
-                    'thoi_gian_bao_luu_den' => isset($row[11]) ? trim($row[11]) : '',
-                    'link_don_dang_ky' => isset($row[12]) ? trim($row[12]) : '',
-                    'trang_thai' => isset($row[13]) && trim($row[13]) !== '' ? trim($row[13]) : 'Chờ xử lý',
-                    'ghi_chu' => isset($row[14]) ? trim($row[14]) : '',
-                    'so_quyet_dinh' => isset($row[15]) ? trim($row[15]) : '',
-                    'ngay_quyet_dinh' => isset($row[16]) ? trim($row[16]) : '',
-                    'link_file_quyet_dinh' => isset($row[17]) ? trim($row[17]) : '',
+                    'thoi_gian'             => $row[$C['TIMESTAMP']] ?? '',
+                    'loai_yeu_cau'          => $row[$C['LOAI_YC']] ?? '',
+                    'thoi_gian_bao_luu_den' => isset($row[$C['BL_DEN']]) ? trim($row[$C['BL_DEN']]) : '',
+                    'link_don_dang_ky'      => isset($row[$C['LINK_DON']]) ? trim($row[$C['LINK_DON']]) : '',
+                    'trang_thai'            => isset($row[$C['TRANG_THAI']]) && trim($row[$C['TRANG_THAI']]) !== '' ? trim($row[$C['TRANG_THAI']]) : 'Chờ xử lý',
+                    'ghi_chu'               => isset($row[$C['GHI_CHU']]) ? trim($row[$C['GHI_CHU']]) : '',
+                    'so_quyet_dinh'         => isset($row[$C['SO_QD']]) ? trim($row[$C['SO_QD']]) : '',
+                    'ngay_quyet_dinh'       => isset($row[$C['NGAY_QD']]) ? trim($row[$C['NGAY_QD']]) : '',
+                    'link_file_quyet_dinh'  => isset($row[$C['LINK_QD']]) ? trim($row[$C['LINK_QD']]) : '',
                 ];
             }
         }
-
         return array_reverse($requests);
     }
 
     /**
-     * Chuyển trạng thái Đóng hồ sơ đối với đơn Bảo lưu trước đó (nếu có)
+     * Tìm dòng (1-based) của đơn Bảo lưu gần nhất đã được Duyệt.
      */
-    public function closePreviousApprovedBaoLuu($maSv) {
-        $values = $this->fetchRequestListSheet();
-        if (empty($values)) return false;
-
-        $targetRow = -1;
-        // Duyệt ngược để tìm đơn Bảo lưu gần nhất đã Duyệt
+    private function findApprovedBaoLuuRow(?array $values, string $maSv): int {
+        if (empty($values)) return -1;
+        $C = self::REQ_COL;
         for ($i = count($values) - 1; $i >= 1; $i--) {
             $row = $values[$i];
-            $currentMaSv = isset($row[1]) ? trim($row[1]) : '';
+            $currentMaSv = isset($row[$C['MA_SV']]) ? trim($row[$C['MA_SV']]) : '';
             if (strtolower($currentMaSv) === strtolower(trim($maSv))) {
-                $loai = isset($row[10]) ? trim($row[10]) : '';
-                $tt = isset($row[13]) ? trim($row[13]) : '';
-                
-                if ($loai === 'Bảo lưu kết quả học tập' && 
+                $loai = isset($row[$C['LOAI_YC']]) ? trim($row[$C['LOAI_YC']]) : '';
+                $tt = isset($row[$C['TRANG_THAI']]) ? trim($row[$C['TRANG_THAI']]) : '';
+                if ($loai === 'Bảo lưu kết quả học tập' &&
                     (mb_strpos(mb_strtolower($tt), 'duyệt') !== false || mb_strpos(mb_strtolower($tt), 'thành công') !== false)) {
-                    $targetRow = $i + 1; // Google Sheets row (1-based index)
-                    break;
+                    return $i + 1;
                 }
             }
         }
+        return -1;
+    }
 
-        if ($targetRow !== -1) {
-            // Cột N là cột trạng thái (index 13)
-            $sheetParts = explode('!', SHEET_REQUEST_LIST);
-            $sheetName = $sheetParts[0];
-            $updateRange = $sheetName . '!N' . $targetRow;
+    /**
+     * Đóng đơn Bảo lưu trước đó (standalone, backward-compatible).
+     */
+    public function closePreviousApprovedBaoLuu($maSv) {
+        $values = $this->fetchRequestListSheet();
+        $targetRow = $this->findApprovedBaoLuuRow($values, $maSv);
+        if ($targetRow === -1) return false;
 
-            $body = new \Google_Service_Sheets_ValueRange([
-                'values' => [['Đã đóng (Xin tiếp tục học)']]
-            ]);
-            $params = ['valueInputOption' => 'USER_ENTERED'];
+        $sheetParts = explode('!', SHEET_REQUEST_LIST);
+        $sheetName = $sheetParts[0];
 
-            try {
-                $this->service->spreadsheets_values->update($this->spreadsheetId, $updateRange, $body, $params);
-                $this->invalidateRequestsCache();
-                return true;
-            } catch (Exception $e) {
-                error_log("Google Sheets Error closePreviousApprovedBaoLuu: " . $e->getMessage());
-                return false;
+        $body = new \Google_Service_Sheets_ValueRange([
+            'values' => [['Đã đóng (Xin tiếp tục học)']]
+        ]);
+
+        try {
+            $this->service->spreadsheets_values->update(
+                $this->spreadsheetId,
+                $sheetName . '!N' . $targetRow,
+                $body,
+                ['valueInputOption' => 'USER_ENTERED']
+            );
+            $this->invalidateRequestsCache();
+            return true;
+        } catch (Exception $e) {
+            error_log("Google Sheets Error closePreviousApprovedBaoLuu: " . $e->getMessage());
+            return false;
+        }
+    }
+
+    /**
+     * Kiểm tra điều kiện nộp đơn (dùng chung cho form + submit).
+     */
+    public function getStudentSubmitEligibility(string $maSv): array {
+        $requests = $this->getStudentRequests($maSv);
+        $pendingTypes = [];
+        $coQDBaoLuu = false;
+
+        foreach ($requests as $req) {
+            $ttLower = mb_strtolower(trim($req['trang_thai']));
+            $reqType = trim($req['loai_yeu_cau']);
+            $isPending = (mb_strpos($ttLower, 'chờ') !== false);
+
+            if ($isPending) {
+                $pendingTypes[] = $reqType;
+            }
+
+            if ($reqType === 'Bảo lưu kết quả học tập' && !$isPending &&
+                (mb_strpos($ttLower, 'duyệt') !== false || mb_strpos($ttLower, 'thành công') !== false || mb_strpos($ttLower, 'xong') !== false)) {
+                $coQDBaoLuu = true;
             }
         }
 
-        return false;
+        $isTiepTucHocPending = in_array('Tiếp tục học sau bảo lưu', $pendingTypes);
+
+        return [
+            'pendingTypes'        => $pendingTypes,
+            'coQDBaoLuu'          => $coQDBaoLuu,
+            'isTiepTucHocPending' => $isTiepTucHocPending,
+            'canSubmitBaoLuu'     => !$coQDBaoLuu && !$isTiepTucHocPending && !in_array('Bảo lưu kết quả học tập', $pendingTypes),
+            'canSubmitTiepTuc'    => $coQDBaoLuu && !in_array('Tiếp tục học sau bảo lưu', $pendingTypes),
+        ];
+    }
+
+    /**
+     * Ghi đơn mới + đóng BL cũ trong 1 batch request (atomic).
+     */
+    public function submitRequestAtomic(array $data, bool $closePreviousBaoLuu = false): bool {
+        try {
+            $sheetParts = explode('!', SHEET_REQUEST_LIST);
+            $sheetName = $sheetParts[0];
+
+            // Force fresh read để xác định row chính xác
+            $this->invalidateRequestsCache();
+            $values = $this->fetchRequestListSheet();
+            $nextRow = empty($values) ? 2 : count($values) + 1;
+
+            $newRow = [
+                date('d/m/Y H:i:s'),
+                $data['ma_sv'],
+                $data['ho_ten'],
+                $data['ngay_sinh'] ?? '',
+                $data['sdt'] ?? '',
+                $data['ten_khoa'] ?? '',
+                $data['ten_he'] ?? '',
+                $data['ten_lop'],
+                $data['chuyen_nganh'],
+                $data['nien_khoa'] ?? '',
+                $data['loai_yeu_cau'],
+                $data['thoi_gian_bao_luu_den'] ?? '',
+                $data['link_don_dang_ky'] ?? '',
+                'Chờ duyệt',
+                $data['ly_do'] ?? '',
+                '', '', ''
+            ];
+
+            $batchData = [
+                new \Google_Service_Sheets_ValueRange([
+                    'range'  => $sheetName . '!A' . $nextRow,
+                    'values' => [$newRow]
+                ])
+            ];
+
+            if ($closePreviousBaoLuu) {
+                $closeRow = $this->findApprovedBaoLuuRow($values, $data['ma_sv']);
+                if ($closeRow !== -1) {
+                    $batchData[] = new \Google_Service_Sheets_ValueRange([
+                        'range'  => $sheetName . '!N' . $closeRow,
+                        'values' => [['Đã đóng (Xin tiếp tục học)']]
+                    ]);
+                }
+            }
+
+            $batchBody = new \Google_Service_Sheets_BatchUpdateValuesRequest([
+                'valueInputOption' => 'USER_ENTERED',
+                'data' => $batchData
+            ]);
+
+            $this->service->spreadsheets_values->batchUpdate($this->spreadsheetId, $batchBody);
+            $this->invalidateRequestsCache();
+            return true;
+        } catch (Exception $e) {
+            error_log("Google Sheets Error submitRequestAtomic: " . $e->getMessage());
+            return false;
+        }
     }
 }

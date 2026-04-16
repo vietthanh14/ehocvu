@@ -195,7 +195,11 @@ if (isset($_SESSION['student'])) {
             spinner.style.display = 'inline-block';
             errorMsg.style.display = 'none';
 
-            fetch(`api_auth.php?ma_sv=${encodeURIComponent(masv)}`)
+            fetch('api_auth.php', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/x-www-form-urlencoded'},
+                body: 'ma_sv=' + encodeURIComponent(masv)
+            })
                 .then(res => res.json())
                 .then(data => {
                     if (data.success) {

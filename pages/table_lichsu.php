@@ -2,7 +2,7 @@
 if (!isset($_SESSION['student'])) exit;
 
 require_once __DIR__ . '/../GoogleSheetService.php';
-$service = new GoogleSheetService();
+$service = GoogleSheetService::getInstance();
 $requests = $service->getStudentRequests($_SESSION['student']['ma_sv']);
 
 // Tính badge color cho mỗi request

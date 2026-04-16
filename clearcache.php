@@ -1,8 +1,16 @@
 <?php
 /**
  * Xóa toàn bộ cache của hệ thống.
- * Truy cập: /baoluu/clearcache.php
+ * Yêu cầu đăng nhập để sử dụng.
  */
+session_start();
+
+if (!isset($_SESSION['student'])) {
+    http_response_code(403);
+    header('Content-Type: application/json; charset=utf-8');
+    echo json_encode(['success' => false, 'message' => 'Vui lòng đăng nhập trước.']);
+    exit;
+}
 
 $cacheDir = __DIR__ . '/cache';
 $count = 0;

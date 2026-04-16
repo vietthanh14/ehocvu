@@ -2,41 +2,19 @@
 if (!isset($_SESSION['student'])) exit;
 $student = $_SESSION['student'];
 
-// Lấy danh sách đơn đang chờ để cảnh báo trước trên giao diện
 require_once __DIR__ . '/../GoogleSheetService.php';
-$service = new GoogleSheetService();
-$existingRequests = $service->getStudentRequests($student['ma_sv']);
+$service = GoogleSheetService::getInstance();
+$elig = $service->getStudentSubmitEligibility($student['ma_sv']);
 
-$pendingTypes = [];
-$coQDBaoLuu = false; // Kiểm tra có QĐ bảo lưu nào đã duyệt không
+$pendingTypes = $elig['pendingTypes'];
+$coQDBaoLuu = $elig['coQDBaoLuu'];
+$isTiepTucHocPending = $elig['isTiepTucHocPending'];
 
-foreach ($existingRequests as $req) {
-    $ttLower = mb_strtolower(trim($req['trang_thai']));
-    $reqType = trim($req['loai_yeu_cau']);
-    
-    $isPending = (mb_strpos($ttLower, 'chờ') !== false);
-
-    if ($isPending) {
-        $pendingTypes[] = $reqType;
-    }
-
-    // Đã duyệt phải không chứa chữ "chờ" (tránh "đang chờ duyệt" match chữ "duyệt")
-    if ($reqType === 'Bảo lưu kết quả học tập' && !$isPending && (mb_strpos($ttLower, 'duyệt') !== false || mb_strpos($ttLower, 'thành công') !== false || mb_strpos($ttLower, 'xong') !== false)) {
-        $coQDBaoLuu = true;
-    }
-}
-?>
-
-<?php
 $warnings = [];
 
-// Thêm cảnh báo cho đơn đang chờ duyệt
 foreach ($pendingTypes as $t) {
     $warnings[] = "<strong>" . htmlspecialchars($t) . "</strong> — đang chờ duyệt. Bạn không thể nộp thêm đơn cùng loại.";
 }
-
-// Thêm cảnh báo điều kiện về Bảo lưu
-$isTiepTucHocPending = in_array('Tiếp tục học sau bảo lưu', $pendingTypes);
 
 if ($coQDBaoLuu || $isTiepTucHocPending) {
     if (!in_array('Bảo lưu kết quả học tập', $pendingTypes)) {
@@ -71,10 +49,10 @@ if ($coQDBaoLuu || $isTiepTucHocPending) {
         <label for="loai_yeu_cau">Thủ tục đăng ký <span style="color: var(--danger);">*</span></label>
         <select name="loai_yeu_cau" id="loai_yeu_cau" required>
             <option value="" disabled selected>-- Chọn loại thủ tục --</option>
-            <option value="Bảo lưu kết quả học tập" <?= in_array('Bảo lưu kết quả học tập', $pendingTypes) || $coQDBaoLuu || $isTiepTucHocPending ? 'disabled' : '' ?>>
+            <option value="Bảo lưu kết quả học tập" <?= !$elig['canSubmitBaoLuu'] ? 'disabled' : '' ?>>
                 Bảo lưu kết quả học tập
             </option>
-            <option value="Tiếp tục học sau bảo lưu" <?= in_array('Tiếp tục học sau bảo lưu', $pendingTypes) || !$coQDBaoLuu ? 'disabled' : '' ?>>
+            <option value="Tiếp tục học sau bảo lưu" <?= !$elig['canSubmitTiepTuc'] ? 'disabled' : '' ?>>
                 Tiếp tục học sau bảo lưu
             </option>
         </select>

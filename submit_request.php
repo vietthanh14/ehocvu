@@ -36,9 +36,9 @@ if (empty($loaiYeuCau) || empty($lyDo)) {
     exit;
 }
 
-// === Kiểm tra file upload ===
-$linkDonDangKy = '';
-if (isset($_FILES['file_don']) && $_FILES['file_don']['error'] === UPLOAD_ERR_OK) {
+// === Validate file metadata — KHÔNG upload vội ===
+$hasFile = isset($_FILES['file_don']) && $_FILES['file_don']['error'] === UPLOAD_ERR_OK;
+if ($hasFile) {
     $file = $_FILES['file_don'];
     $maxSize = 10 * 1024 * 1024; // 10MB
 
@@ -47,22 +47,15 @@ if (isset($_FILES['file_don']) && $_FILES['file_don']['error'] === UPLOAD_ERR_OK
         exit;
     }
 
-    // Kiểm tra loại file
+    // Validate MIME type thực tế bằng finfo (không tin client)
     $allowedTypes = ['application/pdf', 'image/jpeg', 'image/png', 'image/jpg',
                      'application/msword', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'];
-    if (!in_array($file['type'], $allowedTypes)) {
+    $finfo = finfo_open(FILEINFO_MIME_TYPE);
+    $realType = finfo_file($finfo, $file['tmp_name']);
+    finfo_close($finfo);
+
+    if (!in_array($realType, $allowedTypes)) {
         echo json_encode(['success' => false, 'message' => 'Định dạng file không hợp lệ. Chỉ chấp nhận PDF, JPG, PNG, DOC, DOCX.']);
-        exit;
-    }
-
-    // Upload lên Google Drive qua Apps Script
-    $uploadResult = uploadToGoogleDrive($file, $maSv);
-
-    if ($uploadResult && $uploadResult['success']) {
-        $linkDonDangKy = $uploadResult['fileUrl'];
-    } else {
-        $errorMsg = $uploadResult['message'] ?? 'Lỗi không xác định khi upload file.';
-        echo json_encode(['success' => false, 'message' => 'Lỗi upload file: ' . $errorMsg]);
         exit;
     }
 } elseif (isset($_FILES['file_don']) && $_FILES['file_don']['error'] !== UPLOAD_ERR_NO_FILE) {
@@ -70,55 +63,35 @@ if (isset($_FILES['file_don']) && $_FILES['file_don']['error'] === UPLOAD_ERR_OK
     exit;
 }
 
-$service = new GoogleSheetService();
+// === Kiểm tra nghiệp vụ TRƯỚC khi upload ===
+$service = GoogleSheetService::getInstance();
 
-// === Kiểm tra bị xóa tên ===
 if ($service->isExpelled($maSv)) {
     echo json_encode(['success' => false, 'message' => 'Lỗi: Sinh viên đang thuộc diện bị xóa tên!']);
     exit;
 }
 
-// === Kiểm tra tính hợp lệ nghiệp vụ từ lịch sử đơn ===
-$existingRequests = $service->getStudentRequests($maSv);
-$pendingTypes = [];
-$coQDBaoLuu = false;
+$eligibility = $service->getStudentSubmitEligibility($maSv);
 
-foreach ($existingRequests as $req) {
-    $ttLower = mb_strtolower(trim($req['trang_thai']));
-    $reqType = trim($req['loai_yeu_cau']);
-    $isPending = (mb_strpos($ttLower, 'chờ') !== false);
-
-    if ($isPending) {
-        $pendingTypes[] = $reqType;
-        if ($reqType === $loaiYeuCau) {
-            echo json_encode([
-                'success' => false,
-                'message' => 'Bạn đã có đơn "' . htmlspecialchars($loaiYeuCau) . '" đang chờ xử lý (nộp lúc ' . htmlspecialchars($req['thoi_gian']) . '). Vui lòng chờ kết quả trước khi nộp đơn mới cùng loại.'
-            ]);
-            exit;
-        }
-    }
-
-    if ($reqType === 'Bảo lưu kết quả học tập' && !$isPending && (mb_strpos($ttLower, 'duyệt') !== false || mb_strpos($ttLower, 'thành công') !== false || mb_strpos($ttLower, 'xong') !== false)) {
-        $coQDBaoLuu = true;
-    }
+// Kiểm tra trùng đơn cùng loại đang chờ
+if (in_array($loaiYeuCau, $eligibility['pendingTypes'])) {
+    echo json_encode([
+        'success' => false,
+        'message' => 'Bạn đã có đơn "' . htmlspecialchars($loaiYeuCau) . '" đang chờ xử lý. Vui lòng chờ kết quả trước khi nộp đơn mới cùng loại.'
+    ]);
+    exit;
 }
 
-$isTiepTucHocPending = in_array('Tiếp tục học sau bảo lưu', $pendingTypes);
-
-// Chặn nộp sai logic nghiệp vụ (trường hợp user pass qua HTML required)
-if ($loaiYeuCau === 'Bảo lưu kết quả học tập') {
-    if ($coQDBaoLuu || $isTiepTucHocPending) {
-        $reason = $isTiepTucHocPending ? 'đang có đơn xin Tiếp tục học chờ duyệt' : 'đang trong thời gian bảo lưu';
-        echo json_encode([
-            'success' => false,
-            'message' => "Thao tác bị từ chối: Bạn $reason nên không thể nộp thêm đơn bảo lưu mới."
-        ]);
-        exit;
-    }
+if ($loaiYeuCau === 'Bảo lưu kết quả học tập' && !$eligibility['canSubmitBaoLuu']) {
+    $reason = $eligibility['isTiepTucHocPending'] ? 'đang có đơn xin Tiếp tục học chờ duyệt' : 'đang trong thời gian bảo lưu';
+    echo json_encode([
+        'success' => false,
+        'message' => "Thao tác bị từ chối: Bạn $reason nên không thể nộp thêm đơn bảo lưu mới."
+    ]);
+    exit;
 }
 
-if ($loaiYeuCau === 'Tiếp tục học sau bảo lưu' && !$coQDBaoLuu) {
+if ($loaiYeuCau === 'Tiếp tục học sau bảo lưu' && !$eligibility['canSubmitTiepTuc']) {
     echo json_encode([
         'success' => false,
         'message' => 'Thao tác bị từ chối: Không có Quyết định bảo lưu hợp lệ để tiến hành tiếp tục học.'
@@ -137,7 +110,21 @@ if (isset($_SESSION[$submitKey]) && ($now - $_SESSION[$submitKey]) < 30) {
     exit;
 }
 
-// === Ghi vào Google Sheet ===
+// === Upload file CHỈ SAU KHI pass hết validation ===
+$linkDonDangKy = '';
+if ($hasFile) {
+    $uploadResult = uploadToGoogleDrive($file, $maSv);
+
+    if ($uploadResult && $uploadResult['success']) {
+        $linkDonDangKy = $uploadResult['fileUrl'];
+    } else {
+        $errorMsg = $uploadResult['message'] ?? 'Lỗi không xác định khi upload file.';
+        echo json_encode(['success' => false, 'message' => 'Lỗi upload file: ' . $errorMsg]);
+        exit;
+    }
+}
+
+// === Ghi vào Google Sheet (atomic batch) ===
 $data = [
     'ma_sv'        => $student['ma_sv'],
     'ho_ten'       => $student['ho_ten'],
@@ -154,14 +141,10 @@ $data = [
     'ly_do'                 => $lyDo
 ];
 
-$success = $service->appendRequest($data);
+$closePrevious = ($loaiYeuCau === 'Tiếp tục học sau bảo lưu');
+$success = $service->submitRequestAtomic($data, $closePrevious);
 
 if ($success) {
-    // Nếu là đơn "Tiếp tục học", tiến hành đóng hồ sơ "Bảo lưu" cũ
-    if ($loaiYeuCau === 'Tiếp tục học sau bảo lưu') {
-        $service->closePreviousApprovedBaoLuu($student['ma_sv']);
-    }
-
     $_SESSION[$submitKey] = $now;
 
     echo json_encode([
