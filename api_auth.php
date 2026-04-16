@@ -32,10 +32,10 @@ if ($service->isExpelled($maSv)) {
 // 2. Lấy thông tin
 $studentInfo = $service->getStudentInfo($maSv);
 
-if (!$studentInfo) {
+if ($studentInfo === null) {
     echo json_encode([
         'success' => false,
-        'message' => 'Mã Sinh Viên không tồn tại trong hệ thống.'
+        'message' => 'Lỗi kỹ thuật: Không thể kết nối với dịch vụ của Google hoặc Mã SV không tồn tại (Gợi ý: Lỗi do đồng hồ máy tính sai năm 2026 khiến Google chặn).'
     ]);
     exit;
 }
