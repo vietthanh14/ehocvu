@@ -23,7 +23,7 @@ $student = $_SESSION['student'];
         <div class="profile-row">
             <div class="lbl">SĐT liên hệ</div>
             <div class="val" style="display: flex; align-items: center; gap: 10px;">
-                <span id="txt-sdt"><?= htmlspecialchars($student['sdt']) ?: '<em style="color:var(--text-light);">(Trống)</em>' ?></span>
+                <span id="txt-sdt" data-phone="<?= htmlspecialchars($student['sdt']) ?>"><?= htmlspecialchars($student['sdt']) ?: '<em style="color:var(--text-light);">(Trống)</em>' ?></span>
                 <button type="button" onclick="editPhone()" style="background: none; border: none; color: var(--primary); cursor: pointer; padding: 4px; border-radius: 4px;" title="Cập nhật Số điện thoại">
                     <i class="fas fa-edit"></i>
                 </button>
@@ -34,11 +34,12 @@ $student = $_SESSION['student'];
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 <script>
 function editPhone() {
+    const currentPhone = document.getElementById('txt-sdt').getAttribute('data-phone') || '';
     Swal.fire({
         title: 'Cập nhật Số điện thoại',
         input: 'text',
         inputLabel: 'Nhập số điện thoại liên lạc mới (Zalo/Call):',
-        inputValue: '<?= htmlspecialchars($student['sdt']) ?>',
+        inputValue: currentPhone,
         showCancelButton: true,
         confirmButtonText: 'Lưu thay đổi',
         cancelButtonText: 'Hủy',
@@ -71,7 +72,9 @@ function editPhone() {
             .then(r => r.json())
             .then(response => {
                 if(response.success) {
-                    document.getElementById('txt-sdt').textContent = response.new_sdt;
+                    const spanSdt = document.getElementById('txt-sdt');
+                    spanSdt.textContent = response.new_sdt;
+                    spanSdt.setAttribute('data-phone', response.new_sdt);
                     Swal.fire('Thành công!', response.message, 'success');
                 } else {
                     Swal.fire('Lỗi', response.message, 'error');
