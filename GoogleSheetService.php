@@ -328,9 +328,14 @@ class GoogleSheetService {
                 $body,
                 ['valueInputOption' => 'USER_ENTERED']
             );
+            // Tối ưu In-place cache update thay vì xóa trắng file cache
+            // Điều này hạn chế 1 lượng lớn request tải lại Google Sheet
+            while (count($values[$targetRow - 1]) <= $sdtIndex) {
+                $values[$targetRow - 1][] = '';
+            }
+            $values[$targetRow - 1][$sdtIndex] = $newPhone;
+            $this->cacheSet('student_list', $values);
             
-            // Xóa cache để làm mới ds sinh viên trong phiên kế tiếp
-            $this->cacheClear('student_list');
             return true;
         } catch (Exception $e) {
             error_log("Google Sheets Error updateStudentPhone: " . $e->getMessage());
