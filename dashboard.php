@@ -161,7 +161,7 @@ $student = $_SESSION['student'];
             <div class="notice-card">
                 <h6><i class="fas fa-bell"></i> Thông báo quan trọng</h6>
                 <ul>
-                    <li><strong>Quy định thủ tục:</strong> Việc đăng ký cần được thực hiện đúng theo quy định của Phòng đào tạo.</li>
+                    <li><strong>Quy định thủ tục:</strong> Kiểm tra thông tin cá nhân trước khi đăng ký.</li>
                     <li><strong>Lưu ý:</strong> Số điện thoại đăng kí zalo không được để chế độ chặn để tiện cho việc liên lạc khi cần.</li>
                 </ul>
             </div>
