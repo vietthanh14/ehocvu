@@ -66,6 +66,9 @@ if ($coQDBaoLuu || $isTiepTucHocPending) {
 
     <div class="form-field">
         <label for="file_don">File đơn đăng ký <span style="color: var(--danger);">*</span></label>
+        <div style="margin-bottom: 8px; font-size: 0.85rem; color: var(--text-mid);">
+            <i class="fas fa-info-circle" style="color: var(--primary);"></i> Chưa có mẫu đơn? <a href="https://drive.google.com/drive/folders/1zs6cYMC95_dpMt29hSVpWhr0As10Y8eA" target="_blank" style="color: var(--primary); font-weight: 600; text-decoration: underline;">Tải biểu mẫu tại đây</a>.
+        </div>
         <div class="file-upload-area" id="dropZone">
             <input type="file" name="file_don" id="file_don" accept=".pdf,.jpg,.jpeg,.png,.doc,.docx" required>
             <div class="file-upload-content" id="fileUploadContent">
