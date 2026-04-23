@@ -1,6 +1,5 @@
 <?php
 require_once __DIR__ . '/../core/GoogleSheetService.php';
-require_once __DIR__ . '/../core/DriveUploader.php';
 require_once __DIR__ . '/../core/Response.php';
 require_once __DIR__ . '/../core/ApiHandler.php';
 
@@ -47,25 +46,9 @@ if ($service->checkHuyHocPhanSubmitted($maSv, $tieuDeDot)) {
 // === Chống Double-submit ===
 Security::checkSessionLock('submit_huyhocphan', 30, $maSv);
 
-// === Upload file minh chứng (Tùy chọn) ===
-$linkMinhChung = '';
-$hasFile = isset($_FILES['file_minh_chung']) && $_FILES['file_minh_chung']['error'] === UPLOAD_ERR_OK;
+// === Upload file minh chứng (tùy chọn) ===
+$linkMinhChung = ApiHandler::handleFileUpload('file_minh_chung', $maSv, false);
 
-if ($hasFile) {
-    $file = $_FILES['file_minh_chung'];
-    ApiHandler::validateUploadFile($file);
-
-    session_write_close();
-    $uploadResult = DriveUploader::upload($file, $maSv, UPLOAD_SCRIPT_URL);
-    session_start();
-
-    if ($uploadResult && $uploadResult['success']) {
-        $linkMinhChung = $uploadResult['fileUrl'];
-    } else {
-        $errorMsg = $uploadResult['message'] ?? 'Lỗi không xác định khi upload file.';
-        Response::error('Lỗi upload file: ' . $errorMsg);
-    }
-}
 
 // === Ghi dữ liệu vào Google Sheet ===
 $data = [

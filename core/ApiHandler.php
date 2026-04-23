@@ -50,4 +50,44 @@ class ApiHandler {
             Response::error('Định dạng file không hợp lệ. Chỉ chấp nhận PDF, JPG, PNG, DOC, DOCX.');
         }
     }
+
+    /**
+     * Xử lý upload file lên Google Drive (dùng chung cho mọi API submit)
+     * 
+     * @param string $fieldName Tên field trong $_FILES (VD: 'file_don', 'file_minh_chung')
+     * @param string $maSv Mã sinh viên
+     * @param bool $required Có bắt buộc phải upload không
+     * @return string URL file trên Google Drive, hoặc '' nếu không upload
+     */
+    public static function handleFileUpload(string $fieldName, string $maSv, bool $required = false): string {
+        require_once __DIR__ . '/DriveUploader.php';
+
+        $hasFile = isset($_FILES[$fieldName]) && $_FILES[$fieldName]['error'] === UPLOAD_ERR_OK;
+
+        if (!$hasFile) {
+            if ($required) {
+                // Kiểm tra lỗi upload cụ thể (không phải "không chọn file")
+                if (isset($_FILES[$fieldName]) && $_FILES[$fieldName]['error'] !== UPLOAD_ERR_NO_FILE) {
+                    Response::error('Lỗi khi tải file lên. Mã lỗi: ' . $_FILES[$fieldName]['error']);
+                }
+                Response::error('Vui lòng đính kèm file đơn đăng ký.');
+            }
+            return '';
+        }
+
+        $file = $_FILES[$fieldName];
+        self::validateUploadFile($file);
+
+        // Mở khóa Session để tránh block request khác trong lúc upload
+        session_write_close();
+        $uploadResult = DriveUploader::upload($file, $maSv, UPLOAD_SCRIPT_URL);
+        session_start();
+
+        if ($uploadResult && $uploadResult['success']) {
+            return $uploadResult['fileUrl'];
+        }
+
+        Response::error('Lỗi upload file: ' . ($uploadResult['message'] ?? 'Lỗi không xác định khi upload file.'));
+        return ''; // Unreachable — Response::error() calls exit
+    }
 }
