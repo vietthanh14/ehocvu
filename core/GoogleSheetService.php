@@ -65,7 +65,7 @@ class GoogleSheetService {
 
         $this->spreadsheetId = SPREADSHEET_ID;
 
-        $this->cacheManager = new CacheManager(__DIR__ . '/cache');
+        $this->cacheManager = new CacheManager();
     }
 
     // =========================================
