@@ -42,7 +42,7 @@ if ($coQDBaoLuu || $isTiepTucHocPending) {
 </div>
 <?php endif; ?>
 
-<form id="requestForm" method="POST" action="submit_request.php" enctype="multipart/form-data">
+<form id="requestForm" method="POST" action="api_submit_baoluu.php" enctype="multipart/form-data">
     <!-- Thông tin SV lấy từ session phía server, không cần gửi qua form -->
 
     <div class="form-field">
@@ -267,7 +267,7 @@ document.getElementById('requestForm').addEventListener('submit', function(e) {
     progress.style.display = 'block';
     progressText.textContent = 'Đang tải file lên Google Drive...';
 
-    fetch('submit_request.php', { method: 'POST', body: new FormData(this) })
+    fetch('api_submit_baoluu.php', { method: 'POST', body: new FormData(this) })
     .then(r => r.json())
     .then(data => {
         spinner.style.display = 'none';

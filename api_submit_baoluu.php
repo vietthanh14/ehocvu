@@ -1,19 +1,11 @@
 <?php
 require_once __DIR__ . '/GoogleSheetService.php';
 require_once __DIR__ . '/DriveUploader.php';
-header('Content-Type: application/json; charset=utf-8');
-session_start();
+require_once __DIR__ . '/core/Response.php';
+require_once __DIR__ . '/core/Security.php';
 
-if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
-    echo json_encode(['success' => false, 'message' => 'Phương thức không được hỗ trợ.']);
-    exit;
-}
-
-// === Kiểm tra đăng nhập ===
-if (!isset($_SESSION['student'])) {
-    echo json_encode(['success' => false, 'message' => 'Phiên đăng nhập hết hạn. Vui lòng đăng nhập lại.']);
-    exit;
-}
+Security::requirePost();
+$student = Security::requireAuth();
 
 $student = $_SESSION['student'];
 $maSv = $student['ma_sv'];
@@ -32,8 +24,7 @@ if (!empty($thoiGianBaoLuuDen)) {
 }
 
 if (empty($loaiYeuCau) || empty($lyDo)) {
-    echo json_encode(['success' => false, 'message' => 'Vui lòng điền đầy đủ các thông tin bắt buộc.']);
-    exit;
+    Response::error('Vui lòng điền đầy đủ các thông tin bắt buộc.');
 }
 
 // === Validate file metadata — KHÔNG upload vội ===
@@ -43,8 +34,7 @@ if ($hasFile) {
     $maxSize = 10 * 1024 * 1024; // 10MB
 
     if ($file['size'] > $maxSize) {
-        echo json_encode(['success' => false, 'message' => 'File quá lớn. Vui lòng chọn file nhỏ hơn 10MB.']);
-        exit;
+        Response::error('File quá lớn. Vui lòng chọn file nhỏ hơn 10MB.');
     }
 
     // Validate MIME type thực tế bằng finfo (không tin client)
@@ -55,67 +45,40 @@ if ($hasFile) {
     finfo_close($finfo);
 
     if (!in_array($realType, $allowedTypes)) {
-        echo json_encode(['success' => false, 'message' => 'Định dạng file không hợp lệ. Chỉ chấp nhận PDF, JPG, PNG, DOC, DOCX.']);
-        exit;
+        Response::error('Định dạng file không hợp lệ. Chỉ chấp nhận PDF, JPG, PNG, DOC, DOCX.');
     }
 } elseif (isset($_FILES['file_don']) && $_FILES['file_don']['error'] !== UPLOAD_ERR_NO_FILE) {
-    echo json_encode(['success' => false, 'message' => 'Lỗi khi tải file lên. Mã lỗi: ' . $_FILES['file_don']['error']]);
-    exit;
+    Response::error('Lỗi khi tải file lên. Mã lỗi: ' . $_FILES['file_don']['error']);
 } else {
     // Bắt buộc phải có file minh chứng theo đúng luồng
-    echo json_encode(['success' => false, 'message' => 'Lỗi: Vui lòng đính kèm file đơn đăng ký.']);
-    exit;
+    Response::error('Lỗi: Vui lòng đính kèm file đơn đăng ký.');
 }
 
 // === Kiểm tra nghiệp vụ TRƯỚC khi upload ===
 $service = GoogleSheetService::getInstance();
 
 if ($service->isExpelled($maSv)) {
-    echo json_encode(['success' => false, 'message' => 'Lỗi: Sinh viên đang thuộc diện bị xóa tên!']);
-    exit;
+    Response::error('Lỗi: Sinh viên đang thuộc diện bị xóa tên!');
 }
 
 $eligibility = $service->getStudentSubmitEligibility($maSv);
 
 // Kiểm tra trùng đơn cùng loại đang chờ
 if (in_array($loaiYeuCau, $eligibility['pendingTypes'])) {
-    echo json_encode([
-        'success' => false,
-        'message' => 'Bạn đã có đơn "' . htmlspecialchars($loaiYeuCau) . '" đang chờ xử lý. Vui lòng chờ kết quả trước khi nộp đơn mới cùng loại.'
-    ]);
-    exit;
+    Response::error('Bạn đã có đơn "' . htmlspecialchars($loaiYeuCau) . '" đang chờ xử lý. Vui lòng chờ kết quả trước khi nộp đơn mới cùng loại.');
 }
 
 if ($loaiYeuCau === 'Bảo lưu kết quả học tập' && !$eligibility['canSubmitBaoLuu']) {
     $reason = $eligibility['isTiepTucHocPending'] ? 'đang có đơn xin Tiếp tục học chờ duyệt' : 'đang trong thời gian bảo lưu';
-    echo json_encode([
-        'success' => false,
-        'message' => "Thao tác bị từ chối: Bạn $reason nên không thể nộp thêm đơn bảo lưu mới."
-    ]);
-    exit;
+    Response::error("Thao tác bị từ chối: Bạn $reason nên không thể nộp thêm đơn bảo lưu mới.");
 }
 
 if ($loaiYeuCau === 'Tiếp tục học sau bảo lưu' && !$eligibility['canSubmitTiepTuc']) {
-    echo json_encode([
-        'success' => false,
-        'message' => 'Thao tác bị từ chối: Không có Quyết định bảo lưu hợp lệ để tiến hành tiếp tục học.'
-    ]);
-    exit;
+    Response::error('Thao tác bị từ chối: Không có Quyết định bảo lưu hợp lệ để tiến hành tiếp tục học.');
 }
 
 // === Chống double-submit (Lock 30s trên toàn tài khoản) ===
-$submitKey = 'last_submit_' . md5($maSv);
-$now = time();
-if (isset($_SESSION[$submitKey]) && ($now - $_SESSION[$submitKey]) < 30) {
-    echo json_encode([
-        'success' => false,
-        'message' => 'Hệ thống đang xử lý đơn của bạn. Vui lòng không ấn gửi liên tục.'
-    ]);
-    exit;
-}
-
-// Khóa session ngay lập tức để block các request song song (double-click)
-$_SESSION[$submitKey] = $now;
+Security::checkSessionLock('submit_baoluu', 30, $maSv);
 
 // === Upload file CHỈ SAU KHI pass hết validation ===
 $linkDonDangKy = '';
@@ -132,8 +95,7 @@ if ($hasFile) {
         $linkDonDangKy = $uploadResult['fileUrl'];
     } else {
         $errorMsg = $uploadResult['message'] ?? 'Lỗi không xác định khi upload file.';
-        echo json_encode(['success' => false, 'message' => 'Lỗi upload file: ' . $errorMsg]);
-        exit;
+        Response::error('Lỗi upload file: ' . $errorMsg);
     }
 }
 
@@ -158,16 +120,8 @@ $data = [
 $success = $service->appendRequest($data);
 
 if ($success) {
-    $_SESSION[$submitKey] = $now;
-
-    echo json_encode([
-        'success' => true,
-        'message' => 'Đã nộp đơn yêu cầu "' . htmlspecialchars($loaiYeuCau) . '" thành công. Vui lòng chờ phản hồi từ nhà trường.'
-    ]);
+    Response::success('Đã nộp đơn yêu cầu "' . htmlspecialchars($loaiYeuCau) . '" thành công. Vui lòng chờ phản hồi từ nhà trường.');
 } else {
-    echo json_encode([
-        'success' => false,
-        'message' => 'Có lỗi xảy ra khi lưu dữ liệu. Vui lòng thử lại sau.'
-    ]);
+    Response::error('Có lỗi xảy ra khi lưu dữ liệu. Vui lòng thử lại sau.');
 }
 

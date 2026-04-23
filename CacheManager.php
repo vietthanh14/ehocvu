@@ -54,9 +54,15 @@ class CacheManager {
      * Xóa toàn bộ cache liên quan tới request (sau khi submit).
      */
     public function invalidateRequestsCache(): void {
+        // Xóa cache bảo lưu
         $files = glob($this->cacheDir . '/requests_*.json');
         foreach ($files as $f) {
             @unlink($f);
+        }
+        // Xóa cache hủy học phần
+        $hhpFile = $this->cacheDir . '/hhp_requests_all.json';
+        if (file_exists($hhpFile)) {
+            @unlink($hhpFile);
         }
     }
     

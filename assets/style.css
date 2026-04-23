@@ -46,8 +46,31 @@
     --transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
-/* === Reset === */
+/* === Reset & Typography === */
 *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+/* Responsive Typography (Tự động co giãn cỡ chữ theo màn hình) */
+html {
+    font-size: 16px; /* Mặc định cho PC (Desktop) */
+}
+
+@media (max-width: 1024px) {
+    html {
+        font-size: 15px; /* Tablet / Màn hình nhỏ */
+    }
+}
+
+@media (max-width: 768px) {
+    html {
+        font-size: 14px; /* Mobile (Điện thoại) */
+    }
+}
+
+@media (max-width: 480px) {
+    html {
+        font-size: 13.5px; /* Mobile nhỏ */
+    }
+}
 
 body {
     font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;

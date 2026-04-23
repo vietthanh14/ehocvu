@@ -15,10 +15,13 @@ class GoogleSheetService {
     private CacheManager $cacheManager;
 
     private const CACHE_TTL = [
-        'student_list' => 600,
-        'expelled_list' => 900,
-        'requests'      => 120,
-        'notifications' => 120,
+        'student_list'      => 600,
+        'expelled_list'     => 900,
+        'requests'          => 120,
+        'notifications'     => 120,
+        'courses_catalog'   => 86400, // 24 giờ — danh mục môn học hiếm khi thay đổi
+        'config_huyhocphan' => 300,   // 5 phút — cấu hình đợt hủy
+        'hhp_requests'      => 180,   // 3 phút — đơn hủy học phần
     ];
 
     /** Column index mapping cho Sheet3 (DS yêu cầu) */
@@ -132,6 +135,28 @@ class GoogleSheetService {
         } catch (Exception $e) {
             error_log("Google Sheets Error fetchRequestListSheet: " . $e->getMessage());
             throw new Exception("Lỗi kết nối Google Sheets: " . $e->getMessage());
+        }
+    }
+
+    /**
+     * Lấy toàn bộ dữ liệu Sheet HuyHocPhan_Requests — cache chung.
+     */
+    private function fetchHuyHocPhanSheet(): ?array {
+        $cacheKey = 'hhp_requests_all';
+        $cached = $this->cacheManager->get($cacheKey, self::CACHE_TTL['hhp_requests']);
+        if ($cached !== null) {
+            return $cached;
+        }
+
+        try {
+            $range = SHEET_HUY_HOC_PHAN_REQUESTS . '!A2:M';
+            $response = $this->service->spreadsheets_values->get($this->spreadsheetId, $range);
+            $values = $response->getValues() ?: [];
+            $this->cacheManager->set($cacheKey, $values);
+            return $values;
+        } catch (Exception $e) {
+            error_log("Google Sheets Error fetchHuyHocPhanSheet: " . $e->getMessage());
+            return [];
         }
     }
 
@@ -541,6 +566,158 @@ class GoogleSheetService {
             }
         }
         return array_reverse($requests);
+    }
+
+    // =========================================
+    //  HỦY HỌC PHẦN — PUBLIC API
+    // =========================================
+
+    /**
+     * Lấy cấu hình Đợt hủy học phần (có Cache 5 phút)
+     * @return array ['TrangThai', 'TieuDeDot', 'TuNgay', 'DenNgay', 'ThongBaoDong']
+     */
+    public function getHuyHocPhanConfig(): array {
+        $cacheKey = 'config_huyhocphan';
+        $cached = $this->cacheManager->get($cacheKey, self::CACHE_TTL['config_huyhocphan']);
+        if ($cached !== null) {
+            return $cached;
+        }
+
+        try {
+            $response = $this->service->spreadsheets_values->get($this->spreadsheetId, SHEET_CONFIG_HUY_HOC_PHAN);
+            $row = $response->getValues()[0] ?? [];
+
+            $config = [
+                'TrangThai'    => trim($row[0] ?? 'Đóng'),
+                'TieuDeDot'    => trim($row[1] ?? ''),
+                'TuNgay'       => trim($row[2] ?? ''),
+                'DenNgay'      => trim($row[3] ?? ''),
+                'ThongBaoDong' => trim($row[4] ?? 'Hệ thống hiện không mở đợt đăng ký hủy học phần.'),
+            ];
+
+            $this->cacheManager->set($cacheKey, $config);
+            return $config;
+        } catch (Exception $e) {
+            error_log("Google Sheets Error getHuyHocPhanConfig: " . $e->getMessage());
+            return [
+                'TrangThai'    => 'Đóng',
+                'TieuDeDot'    => '',
+                'TuNgay'       => '',
+                'DenNgay'      => '',
+                'ThongBaoDong' => 'Không thể tải cấu hình. Vui lòng thử lại sau.',
+            ];
+        }
+    }
+
+    /**
+     * Lấy danh mục Môn học (có Cache 24 giờ)
+     * @return array [['id' => 'INT123', 'name' => 'Toán cao cấp'], ...]
+     */
+    public function getCoursesCatalog(): array {
+        $cacheKey = 'courses_catalog';
+        $cached = $this->cacheManager->get($cacheKey, self::CACHE_TTL['courses_catalog']);
+        if ($cached !== null) {
+            return $cached;
+        }
+
+        try {
+            $response = $this->service->spreadsheets_values->get($this->spreadsheetId, SHEET_COURSES_CATALOG);
+            $values = $response->getValues() ?: [];
+            $courses = [];
+
+            foreach ($values as $row) {
+                $id = trim($row[0] ?? '');
+                $name = trim($row[1] ?? '');
+                if ($id !== '') {
+                    $courses[] = ['id' => $id, 'name' => $name];
+                }
+            }
+
+            $this->cacheManager->set($cacheKey, $courses);
+            return $courses;
+        } catch (Exception $e) {
+            error_log("Google Sheets Error getCoursesCatalog: " . $e->getMessage());
+            return [];
+        }
+    }
+
+    /**
+     * Kiểm tra xem SV đã nộp đơn hủy học phần trong đợt hiện tại chưa
+     * Dùng chung dữ liệu đã cache từ fetchHuyHocPhanSheet()
+     */
+    public function checkHuyHocPhanSubmitted(string $maSv, string $tieuDeDot): bool {
+        $values = $this->fetchHuyHocPhanSheet() ?: [];
+        foreach ($values as $row) {
+            $rowMaSv = trim($row[1] ?? '');
+            $rowDot  = trim($row[7] ?? '');
+            if (strtolower($rowMaSv) === strtolower(trim($maSv)) && $rowDot === $tieuDeDot) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    /**
+     * Ghi đơn Hủy học phần mới vào Google Sheet
+     */
+    public function appendHuyHocPhanRequest(array $data): bool {
+        try {
+            $range = SHEET_HUY_HOC_PHAN_REQUESTS . '!A:M';
+            $timestamp = date('d/m/Y H:i:s');
+
+            $rowData = [
+                $timestamp,               // A: Timestamp
+                $data['ma_sv'],            // B: MaSV
+                $data['ho_ten'],           // C: HoTen
+                $data['khoa'] ?? '',       // D: Khoa
+                $data['he'] ?? '',         // E: Hệ
+                $data['nganh'] ?? '',      // F: Ngành
+                $data['lop'] ?? '',        // G: Lớp
+                $data['tieu_de_dot'],      // H: TieuDeDot
+                $data['danh_sach_mon'],    // I: DanhSachMonHuy
+                $data['ly_do'],            // J: LyDo
+                $data['link_minh_chung'] ?? '', // K: LinkMinhChung
+                'Chờ xử lý',              // L: TrangThai
+                '',                        // M: GhiChuAdmin
+            ];
+
+            $body = new \Google_Service_Sheets_ValueRange(['values' => [$rowData]]);
+            $params = ['valueInputOption' => 'USER_ENTERED'];
+            $this->service->spreadsheets_values->append($this->spreadsheetId, $range, $body, $params);
+
+            // Xóa cache để lần sau lấy dữ liệu mới
+            $this->cacheManager->clear('hhp_requests_all');
+
+            return true;
+        } catch (Exception $e) {
+            error_log("Google Sheets Error appendHuyHocPhanRequest: " . $e->getMessage());
+            return false;
+        }
+    }
+
+    /**
+     * Lấy lịch sử đơn hủy học phần của sinh viên
+     * @return array Danh sách đơn đã nộp
+     */
+    public function getHuyHocPhanHistory(string $maSv): array {
+        $values = $this->fetchHuyHocPhanSheet() ?: [];
+        $history = [];
+
+        foreach ($values as $row) {
+            $rowMaSv = trim($row[1] ?? '');
+            if (strtolower($rowMaSv) === strtolower(trim($maSv))) {
+                $history[] = [
+                    'timestamp'      => $row[0] ?? '',
+                    'tieu_de_dot'    => $row[7] ?? '',
+                    'danh_sach_mon'  => $row[8] ?? '',
+                    'ly_do'          => $row[9] ?? '',
+                    'link_minh_chung'=> $row[10] ?? '',
+                    'trang_thai'     => $row[11] ?? 'Chờ xử lý',
+                    'ghi_chu_admin'  => $row[12] ?? '',
+                ];
+            }
+        }
+        return $history;
     }
 
 }
