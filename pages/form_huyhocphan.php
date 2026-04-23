@@ -79,8 +79,18 @@ foreach ($lichSuDon as $don) {
     <?php endif; ?>
 </div>
 
+<?php elseif ($daNopDon): ?>
+<!-- === ĐÃ NỘP ĐƠN: Thông báo xác nhận === -->
+<div style="text-align: center; padding: 40px 20px;">
+    <div style="font-size: 3.5rem; margin-bottom: 16px;">✅</div>
+    <h3 style="color: var(--text-dark); margin-bottom: 10px;">Bạn đã nộp đơn trong đợt này</h3>
+    <p style="color: var(--text-light); max-width: 480px; margin: 0 auto; line-height: 1.6;">
+        Đơn đề nghị hủy học phần của bạn trong đợt "<strong><?= htmlspecialchars($config['TieuDeDot']) ?></strong>" đã được ghi nhận.
+        Vui lòng theo dõi trạng thái xử lý ở bảng lịch sử bên dưới.
+    </p>
+</div>
 
-<?php elseif (!$daNopDon): ?>
+<?php else: ?>
 <!-- === FORM ĐĂNG KÝ HỦY HỌC PHẦN === -->
 
 <div class="notice-card" style="margin-bottom: 20px;">
