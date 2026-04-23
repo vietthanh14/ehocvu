@@ -1,6 +1,6 @@
 <?php
 require_once __DIR__ . '/GoogleSheetService.php';
-
+require_once __DIR__ . '/DriveUploader.php';
 header('Content-Type: application/json; charset=utf-8');
 session_start();
 
@@ -109,15 +109,24 @@ $now = time();
 if (isset($_SESSION[$submitKey]) && ($now - $_SESSION[$submitKey]) < 30) {
     echo json_encode([
         'success' => false,
-        'message' => 'Bạn vừa nộp đơn cách đây chưa đầy 30 giây. Vui lòng chờ một chút để hệ thống xử lý.'
+        'message' => 'Hệ thống đang xử lý đơn của bạn. Vui lòng không ấn gửi liên tục.'
     ]);
     exit;
 }
 
+// Khóa session ngay lập tức để block các request song song (double-click)
+$_SESSION[$submitKey] = $now;
+
 // === Upload file CHỈ SAU KHI pass hết validation ===
 $linkDonDangKy = '';
 if ($hasFile) {
-    $uploadResult = uploadToGoogleDrive($file, $maSv);
+    // Mở khóa Session để tránh làm treo các request khác của user trong 5s upload
+    session_write_close();
+    
+    $uploadResult = DriveUploader::upload($file, $maSv, UPLOAD_SCRIPT_URL);
+
+    // Mở lại Session để ghi nhận log thời gian nộp đơn
+    session_start();
 
     if ($uploadResult && $uploadResult['success']) {
         $linkDonDangKy = $uploadResult['fileUrl'];
@@ -162,55 +171,3 @@ if ($success) {
     ]);
 }
 
-// =============================================
-//  HELPER: Upload file lên Google Drive
-// =============================================
-function uploadToGoogleDrive($file, $maSv) {
-    $scriptUrl = UPLOAD_SCRIPT_URL;
-
-    if (empty($scriptUrl) || $scriptUrl === 'YOUR_APPS_SCRIPT_URL_HERE') {
-        error_log("UPLOAD_SCRIPT_URL chưa được cấu hình trong config.php");
-        return ['success' => false, 'message' => 'Hệ thống upload chưa được cấu hình. Vui lòng liên hệ quản trị viên.'];
-    }
-
-    $fileContent = file_get_contents($file['tmp_name']);
-    $fileBase64 = base64_encode($fileContent);
-
-    $payload = json_encode([
-        'fileName'   => $file['name'],
-        'mimeType'   => $file['type'],
-        'fileBase64' => $fileBase64,
-        'maSv'       => $maSv
-    ]);
-
-    $ch = curl_init();
-    curl_setopt_array($ch, [
-        CURLOPT_URL            => $scriptUrl,
-        CURLOPT_POST           => true,
-        CURLOPT_POSTFIELDS     => $payload,
-        CURLOPT_HTTPHEADER     => ['Content-Type: application/json'],
-        CURLOPT_RETURNTRANSFER => true,
-        CURLOPT_FOLLOWLOCATION => true,  // Apps Script redirects
-        CURLOPT_TIMEOUT        => 60,
-        CURLOPT_SSL_VERIFYPEER => true,
-    ]);
-
-    $response = curl_exec($ch);
-    $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
-    $error = curl_error($ch);
-    curl_close($ch);
-
-    if ($error) {
-        error_log("cURL error uploading to Drive: $error");
-        return ['success' => false, 'message' => 'Lỗi kết nối đến Google Drive: ' . $error];
-    }
-
-    $result = json_decode($response, true);
-
-    if (!$result) {
-        error_log("Invalid response from Apps Script: HTTP $httpCode - $response");
-        return ['success' => false, 'message' => 'Phản hồi không hợp lệ từ Google Drive.'];
-    }
-
-    return $result;
-}

@@ -43,9 +43,10 @@ if ($lockoutTime > time()) {
 }
 
 $maSv = trim($_POST['ma_sv'] ?? '');
+$ngaySinh = trim($_POST['ngay_sinh'] ?? '');
 
-if (empty($maSv)) {
-    echo json_encode(['success' => false, 'message' => 'Vui lòng cung cấp Mã Sinh Viên.']);
+if (empty($maSv) || empty($ngaySinh)) {
+    echo json_encode(['success' => false, 'message' => 'Vui lòng cung cấp đầy đủ Mã Sinh Viên và Ngày sinh.']);
     exit;
 }
 
@@ -83,10 +84,41 @@ if ($studentInfo === null) {
     }
     file_put_contents($rateLimitFile, json_encode(['attempts' => $attempts, 'lockoutTime' => $lockoutTime]), LOCK_EX);
 
-    echo json_encode([
-        'success' => false,
-        'message' => $msg
-    ]);
+    echo json_encode(['success' => false, 'message' => $msg]);
+    exit;
+}
+
+// Hàm chuẩn hóa ngày sinh (05/08/2002 và 5/8/2002 sẽ được coi là giống nhau)
+function normalizeDate($dateStr) {
+    $clean = str_replace(['-', '.', ' '], '/', trim($dateStr));
+    $parts = explode('/', $clean);
+    if (count($parts) === 3) {
+        $d = str_pad((int)$parts[0], 2, '0', STR_PAD_LEFT);
+        $m = str_pad((int)$parts[1], 2, '0', STR_PAD_LEFT);
+        $y = $parts[2];
+        if (strlen($y) == 2) {
+            $y = ($y > 30 ? '19' : '20') . $y; // Đoán năm nếu chỉ có 2 số cuối
+        }
+        return "$d/$m/$y";
+    }
+    return $dateStr;
+}
+
+$dbNgaySinh = $studentInfo['ngay_sinh'] ?? '';
+
+if (normalizeDate($ngaySinh) !== normalizeDate($dbNgaySinh)) {
+    // Tăng số lần sai vì sai "mật khẩu"
+    $attempts++;
+    if ($attempts >= 10) {
+        $lockoutTime = time() + 300; // Khóa 5 phút
+        $attempts = 0;
+        $msg = 'Bạn đã nhập sai quá 10 lần. IP bị tạm khóa 5 phút.';
+    } else {
+        $msg = 'Ngày sinh (Mật khẩu) không đúng. Vui lòng kiểm tra lại.';
+    }
+    file_put_contents($rateLimitFile, json_encode(['attempts' => $attempts, 'lockoutTime' => $lockoutTime]), LOCK_EX);
+
+    echo json_encode(['success' => false, 'message' => $msg]);
     exit;
 }
 

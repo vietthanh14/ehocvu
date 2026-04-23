@@ -172,6 +172,13 @@ if (isset($_SESSION['student'])) {
                         <i class="fas fa-id-card"></i>
                     </div>
                 </div>
+                <div class="form-field" style="margin-top: 16px;">
+                    <label for="ngaysinh">Ngày sinh (Mật khẩu)</label>
+                    <div class="input-wrapper">
+                        <input type="text" id="ngaysinh" placeholder="VD: 15/08/2002" required autocomplete="off">
+                        <i class="fas fa-calendar-alt"></i>
+                    </div>
+                </div>
                 <div class="error-msg" id="error-msg"></div>
                 <button type="submit" class="btn-login" id="btn-login">
                     <span class="spinner" id="spinner"></span>
@@ -189,10 +196,11 @@ if (isset($_SESSION['student'])) {
         document.getElementById('login-form').addEventListener('submit', function(e) {
             e.preventDefault();
             const masv = document.getElementById('masv').value.trim();
+            const ngaysinh = document.getElementById('ngaysinh').value.trim();
             const btn = document.getElementById('btn-login');
             const spinner = document.getElementById('spinner');
             const errorMsg = document.getElementById('error-msg');
-            if (!masv) return;
+            if (!masv || !ngaysinh) return;
 
             btn.disabled = true;
             spinner.style.display = 'inline-block';
@@ -201,7 +209,7 @@ if (isset($_SESSION['student'])) {
             fetch('api_auth.php', {
                 method: 'POST',
                 headers: {'Content-Type': 'application/x-www-form-urlencoded'},
-                body: 'ma_sv=' + encodeURIComponent(masv)
+                body: 'ma_sv=' + encodeURIComponent(masv) + '&ngay_sinh=' + encodeURIComponent(ngaysinh)
             })
                 .then(res => res.json())
                 .then(data => {

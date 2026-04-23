@@ -13,16 +13,9 @@ if (!isset($_SESSION['student'])) {
     exit;
 }
 
-$cacheDir = __DIR__ . '/cache';
-$count = 0;
-
-if (is_dir($cacheDir)) {
-    $files = glob($cacheDir . '/*.json');
-    foreach ($files as $file) {
-        unlink($file);
-        $count++;
-    }
-}
+require_once __DIR__ . '/CacheManager.php';
+$cacheManager = new CacheManager();
+$count = $cacheManager->clearAll();
 
 header('Content-Type: application/json; charset=utf-8');
 echo json_encode([

@@ -1,7 +1,7 @@
 <?php
 require_once __DIR__ . '/vendor/autoload.php';
 require_once __DIR__ . '/config.php';
-
+require_once __DIR__ . '/CacheManager.php';
 class GoogleSheetService {
     private static ?self $instance = null;
 
@@ -11,8 +11,8 @@ class GoogleSheetService {
     /** @var string */
     private $spreadsheetId;
 
-    /** @var string */
-    private $cacheDir;
+    /** @var CacheManager */
+    private CacheManager $cacheManager;
 
     private const CACHE_TTL = [
         'student_list' => 600,
@@ -60,61 +60,9 @@ class GoogleSheetService {
         $this->service = new \Google_Service_Sheets($client);
         $this->spreadsheetId = SPREADSHEET_ID;
 
-        $this->cacheDir = __DIR__ . '/cache';
-        if (!is_dir($this->cacheDir)) {
-            mkdir($this->cacheDir, 0755, true);
-        }
-    }
+        $this->spreadsheetId = SPREADSHEET_ID;
 
-    // =========================================
-    //  CACHE LAYER
-    // =========================================
-
-    /**
-     * Đọc cache. Trả về dữ liệu nếu cache còn hạn, null nếu hết hạn/chưa có.
-     */
-    private function cacheGet(string $key, int $ttl): ?array {
-        $file = $this->cacheDir . '/' . $key . '.json';
-        if (!file_exists($file)) {
-            return null;
-        }
-
-        $mtime = filemtime($file);
-        if ((time() - $mtime) > $ttl) {
-            return null; // Cache hết hạn
-        }
-
-        $data = json_decode(file_get_contents($file), true);
-        return is_array($data) ? $data : null;
-    }
-
-    /**
-     * Ghi cache.
-     */
-    private function cacheSet(string $key, array $data): void {
-        $file = $this->cacheDir . '/' . $key . '.json';
-        file_put_contents($file, json_encode($data, JSON_UNESCAPED_UNICODE), LOCK_EX);
-    }
-
-    /**
-     * Xóa cache theo key (dùng khi cần invalidation).
-     */
-    private function cacheClear(string $key): void {
-        $file = $this->cacheDir . '/' . $key . '.json';
-        if (file_exists($file)) {
-            unlink($file);
-        }
-    }
-
-    /**
-     * Xóa toàn bộ cache liên quan tới request (sau khi submit).
-     */
-    public function invalidateRequestsCache(): void {
-        // Xóa tất cả file cache có prefix "requests_"
-        $files = glob($this->cacheDir . '/requests_*.json');
-        foreach ($files as $f) {
-            unlink($f);
-        }
+        $this->cacheManager = new CacheManager(__DIR__ . '/cache');
     }
 
     // =========================================
@@ -126,7 +74,7 @@ class GoogleSheetService {
      */
     private function fetchStudentListSheet(): ?array {
         $cacheKey = 'student_list';
-        $cached = $this->cacheGet($cacheKey, self::CACHE_TTL['student_list']);
+        $cached = $this->cacheManager->get($cacheKey, self::CACHE_TTL['student_list']);
         if ($cached !== null) {
             return $cached;
         }
@@ -135,7 +83,7 @@ class GoogleSheetService {
             $range = SHEET_STUDENT_LIST;
             $response = $this->service->spreadsheets_values->get($this->spreadsheetId, $range);
             $values = $response->getValues() ?: [];
-            $this->cacheSet($cacheKey, $values);
+            $this->cacheManager->set($cacheKey, $values);
             return empty($values) ? null : $values;
         } catch (Exception $e) {
             error_log("Google Sheets Error fetchStudentListSheet: " . $e->getMessage());
@@ -148,7 +96,7 @@ class GoogleSheetService {
      */
     private function fetchExpelledListSheet(): ?array {
         $cacheKey = 'expelled_list';
-        $cached = $this->cacheGet($cacheKey, self::CACHE_TTL['expelled_list']);
+        $cached = $this->cacheManager->get($cacheKey, self::CACHE_TTL['expelled_list']);
         if ($cached !== null) {
             return $cached;
         }
@@ -157,7 +105,7 @@ class GoogleSheetService {
             $range = SHEET_EXPELLED_LIST;
             $response = $this->service->spreadsheets_values->get($this->spreadsheetId, $range);
             $values = $response->getValues() ?: [];
-            $this->cacheSet($cacheKey, $values);
+            $this->cacheManager->set($cacheKey, $values);
             return empty($values) ? null : $values;
         } catch (Exception $e) {
             error_log("Google Sheets Error fetchExpelledListSheet: " . $e->getMessage());
@@ -170,7 +118,7 @@ class GoogleSheetService {
      */
     private function fetchRequestListSheet(): ?array {
         $cacheKey = 'requests_all';
-        $cached = $this->cacheGet($cacheKey, self::CACHE_TTL['requests']);
+        $cached = $this->cacheManager->get($cacheKey, self::CACHE_TTL['requests']);
         if ($cached !== null) {
             return $cached;
         }
@@ -179,7 +127,7 @@ class GoogleSheetService {
             $range = SHEET_REQUEST_LIST;
             $response = $this->service->spreadsheets_values->get($this->spreadsheetId, $range);
             $values = $response->getValues() ?: [];
-            $this->cacheSet($cacheKey, $values);
+            $this->cacheManager->set($cacheKey, $values);
             return empty($values) ? null : $values;
         } catch (Exception $e) {
             error_log("Google Sheets Error fetchRequestListSheet: " . $e->getMessage());
@@ -196,7 +144,7 @@ class GoogleSheetService {
      */
     private function fetchNotificationSheet(): ?array {
         $cacheKey = 'notifications';
-        $cached = $this->cacheGet($cacheKey, self::CACHE_TTL['notifications']);
+        $cached = $this->cacheManager->get($cacheKey, self::CACHE_TTL['notifications']);
         if ($cached !== null) {
             return $cached;
         }
@@ -206,12 +154,12 @@ class GoogleSheetService {
             $range = SHEET_NOTIFICATION;
             $response = $this->service->spreadsheets_values->get($this->spreadsheetId, $range);
             $values = $response->getValues() ?: [];
-            $this->cacheSet($cacheKey, $values);
+            $this->cacheManager->set($cacheKey, $values);
             return empty($values) ? null : $values;
         } catch (Exception $e) {
             // Không log lỗi ngắt luồng nếu admin chưa tạo sheet ThongBao
             // Ghi cache mảng rỗng để tránh spam API liên tục
-            $this->cacheSet($cacheKey, []);
+            $this->cacheManager->set($cacheKey, []);
             return null;
         }
     }
@@ -386,7 +334,7 @@ class GoogleSheetService {
                 $values[$targetRow - 1][] = '';
             }
             $values[$targetRow - 1][$sdtIndex] = $newPhone;
-            $this->cacheSet('student_list', $values);
+            $this->cacheManager->set('student_list', $values);
             
             // --- ĐỒNG BỘ SĐT SANG SHEET 3 ---
             try {
@@ -428,7 +376,7 @@ class GoogleSheetService {
                         $this->service->spreadsheets_values->batchUpdate($this->spreadsheetId, $batchBody);
                         
                         if ($hasChange) {
-                            $this->cacheSet('requests_all', $reqValues);
+                            $this->cacheManager->set('requests_all', $reqValues);
                         }
                     }
                 }
@@ -514,7 +462,7 @@ class GoogleSheetService {
             $result = $this->service->spreadsheets_values->append($this->spreadsheetId, $range, $body, $params);
 
             // Xóa cache request để lần sau lấy dữ liệu mới
-            $this->invalidateRequestsCache();
+            $this->cacheManager->invalidateRequestsCache();
 
             return $result->getUpdates() != null;
         } catch (Exception $e) {
