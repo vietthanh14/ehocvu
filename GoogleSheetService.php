@@ -18,6 +18,7 @@ class GoogleSheetService {
         'student_list' => 600,
         'expelled_list' => 900,
         'requests'      => 120,
+        'notifications' => 120,
     ];
 
     /** Column index mapping cho Sheet3 (DS yêu cầu) */
@@ -133,13 +134,9 @@ class GoogleSheetService {
         try {
             $range = SHEET_STUDENT_LIST;
             $response = $this->service->spreadsheets_values->get($this->spreadsheetId, $range);
-            $values = $response->getValues();
-
-            if (!empty($values)) {
-                $this->cacheSet($cacheKey, $values);
-            }
-
-            return $values ?: null;
+            $values = $response->getValues() ?: [];
+            $this->cacheSet($cacheKey, $values);
+            return empty($values) ? null : $values;
         } catch (Exception $e) {
             error_log("Google Sheets Error fetchStudentListSheet: " . $e->getMessage());
             throw new Exception("Lỗi kết nối Google Sheets: " . $e->getMessage());
@@ -159,13 +156,9 @@ class GoogleSheetService {
         try {
             $range = SHEET_EXPELLED_LIST;
             $response = $this->service->spreadsheets_values->get($this->spreadsheetId, $range);
-            $values = $response->getValues();
-
-            if (!empty($values)) {
-                $this->cacheSet($cacheKey, $values);
-            }
-
-            return $values ?: null;
+            $values = $response->getValues() ?: [];
+            $this->cacheSet($cacheKey, $values);
+            return empty($values) ? null : $values;
         } catch (Exception $e) {
             error_log("Google Sheets Error fetchExpelledListSheet: " . $e->getMessage());
             throw new Exception("Lỗi kết nối Google Sheets: " . $e->getMessage());
@@ -185,13 +178,9 @@ class GoogleSheetService {
         try {
             $range = SHEET_REQUEST_LIST;
             $response = $this->service->spreadsheets_values->get($this->spreadsheetId, $range);
-            $values = $response->getValues();
-
-            if (!empty($values)) {
-                $this->cacheSet($cacheKey, $values);
-            }
-
-            return $values ?: null;
+            $values = $response->getValues() ?: [];
+            $this->cacheSet($cacheKey, $values);
+            return empty($values) ? null : $values;
         } catch (Exception $e) {
             error_log("Google Sheets Error fetchRequestListSheet: " . $e->getMessage());
             throw new Exception("Lỗi kết nối Google Sheets: " . $e->getMessage());
@@ -201,6 +190,31 @@ class GoogleSheetService {
     // =========================================
     //  PUBLIC API
     // =========================================
+
+    /**
+     * Lấy toàn bộ dữ liệu Sheet Thông báo
+     */
+    private function fetchNotificationSheet(): ?array {
+        $cacheKey = 'notifications';
+        $cached = $this->cacheGet($cacheKey, self::CACHE_TTL['notifications']);
+        if ($cached !== null) {
+            return $cached;
+        }
+
+        try {
+            if (!defined('SHEET_NOTIFICATION')) return null;
+            $range = SHEET_NOTIFICATION;
+            $response = $this->service->spreadsheets_values->get($this->spreadsheetId, $range);
+            $values = $response->getValues() ?: [];
+            $this->cacheSet($cacheKey, $values);
+            return empty($values) ? null : $values;
+        } catch (Exception $e) {
+            // Không log lỗi ngắt luồng nếu admin chưa tạo sheet ThongBao
+            // Ghi cache mảng rỗng để tránh spam API liên tục
+            $this->cacheSet($cacheKey, []);
+            return null;
+        }
+    }
 
     /**
      * Tìm thông tin sinh viên dựa vào mã sinh viên
@@ -247,7 +261,7 @@ class GoogleSheetService {
                     return '';
                 };
 
-                return [
+                $studentData = [
                     'ma_sv' => $currentMaSv,
                     'ho_ten' => $getVal(['họ tên', 'họ và tên', 'ho ten']),
                     'ngay_sinh' => $getVal(['ngày sinh', 'ngay sinh', 'năm sinh']),
@@ -258,6 +272,44 @@ class GoogleSheetService {
                     'chuyen_nganh' => $getVal(['chuyên ngành', 'ngành']),
                     'nien_khoa' => $getVal(['niên khóa', 'khoá'])
                 ];
+
+                // Đọc thông báo riêng (nếu có)
+                $studentData['thong_bao_rieng'] = '';
+                $notiValues = $this->fetchNotificationSheet();
+                if (!empty($notiValues)) {
+                    $messages = [];
+                    foreach ($notiValues as $nRow) {
+                        $nMaSv = isset($nRow[0]) ? trim($nRow[0]) : '';
+                        $nMsg = isset($nRow[1]) ? trim($nRow[1]) : '';
+                        
+                        // Hỗ trợ mã ALL hoặc * để gửi thông báo cho toàn bộ sinh viên
+                        $isTargeted = (strtolower($nMaSv) === strtolower($currentMaSv) || strtoupper($nMaSv) === 'ALL' || $nMaSv === '*');
+                        
+                        if ($isTargeted && $nMsg !== '') {
+                            // Mã hóa HTML để chống XSS
+                            $safeMsg = htmlspecialchars($nMsg, ENT_QUOTES, 'UTF-8');
+                            
+                            // Auto-link: Tìm và biến URL thành chữ [Truy cập Link]
+                            $processedMsg = preg_replace_callback(
+                                '#\bhttps?://[^\s()<>]+#i',
+                                function($matches) {
+                                    $url = $matches[0];
+                                    return '<a href="'.$url.'" target="_blank" style="text-decoration: underline; color: #991b1b; font-weight: 700; background: rgba(255,255,255,0.4); padding: 2px 6px; border-radius: 4px;">[<i class="fas fa-external-link-alt" style="font-size: 0.8rem;"></i> Truy cập Link]</a>';
+                                },
+                                $safeMsg
+                            );
+                            
+                            // Giữ nguyên khoảng xuống dòng (Alt+Enter) từ Google Sheets
+                            $messages[] = nl2br($processedMsg);
+                        }
+                    }
+                    if (!empty($messages)) {
+                        // Nối các thông báo bằng thẻ <hr> mờ mờ nếu có nhiều thông báo
+                        $studentData['thong_bao_rieng'] = implode("<hr style='border: 0; border-top: 1px dashed rgba(239, 68, 68, 0.3); margin: 12px 0;'>", $messages);
+                    }
+                }
+
+                return $studentData;
             }
         }
 

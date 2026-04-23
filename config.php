@@ -24,6 +24,7 @@ define('GOOGLE_AUTH_JSON_PATH', __DIR__ . '/serious-app-415103-05cba52d248a.json
 define('SHEET_STUDENT_LIST', 'Sheet1');
 define('SHEET_EXPELLED_LIST', 'Sheet2');
 define('SHEET_REQUEST_LIST', 'Sheet3'); // Nơi lưu trữ các đơn bảo lưu / tiếp tục học
+define('SHEET_NOTIFICATION', 'ThongBao'); // Nơi lưu trữ thông báo riêng cho sinh viên
 
 // URL của Google Apps Script Web App (dùng để upload file đơn đăng ký)
 // Hướng dẫn: Xem file docs/upload_appscript.js → Deploy trên script.google.com → Dán URL vào đây

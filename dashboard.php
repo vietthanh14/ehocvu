@@ -49,13 +49,6 @@ $student = $_SESSION['student'];
             color: var(--text-light); font-size: 0.85rem;
         }
         .topbar-user strong { color: white; font-weight: 600; }
-        .topbar-user .avatar {
-            width: 32px; height: 32px;
-            background: linear-gradient(135deg, var(--primary), var(--primary-light));
-            border-radius: 50%;
-            display: flex; align-items: center; justify-content: center;
-            color: white; font-weight: 700; font-size: 0.8rem;
-        }
         .btn-menu-toggle {
             display: none; background: none; border: none;
             color: white; font-size: 1.2rem; cursor: pointer; padding: 4px;
@@ -113,7 +106,6 @@ $student = $_SESSION['student'];
             .sidebar { transform: translateX(-100%); }
             .sidebar.show { transform: translateX(0); }
             .main { margin-left: 0; padding: 20px 16px; }
-            .topbar-user span { display: none; }
             .page-header h2 { font-size: 1.25rem; }
         }
     </style>
@@ -131,7 +123,6 @@ $student = $_SESSION['student'];
         </div>
         <div class="topbar-user">
             <span>Xin chào, <strong><?= htmlspecialchars($student['ho_ten']) ?></strong></span>
-            <div class="avatar"><?= mb_substr($student['ho_ten'], -1) ?></div>
         </div>
     </header>
 
@@ -159,6 +150,18 @@ $student = $_SESSION['student'];
                 <h2>Thông tin cá nhân</h2>
                 <span class="breadcrumb-text"><i class="fas fa-home"></i> Trang chủ</span>
             </div>
+
+            <?php if (!empty($student['thong_bao_rieng'])): ?>
+            <div class="notice-card" style="background: rgba(239, 68, 68, 0.1); border: 1px solid rgba(239, 68, 68, 0.3); border-left: 4px solid #ef4444; margin-bottom: 24px;">
+                <h6 style="color: #b91c1c; font-weight: 700; margin-bottom: 8px;">
+                    <i class="fas fa-exclamation-triangle" style="margin-right: 6px;"></i> Thông báo từ Ban Quản Lý
+                </h6>
+                <div style="color: #991b1b; font-size: 0.95rem; line-height: 1.5;">
+                    <?= $student['thong_bao_rieng'] ?>
+                </div>
+            </div>
+            <?php endif; ?>
+
             <div class="notice-card">
                 <h6><i class="fas fa-bell"></i> Thông báo quan trọng</h6>
                 <ul>
