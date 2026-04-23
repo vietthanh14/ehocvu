@@ -32,37 +32,8 @@ if ($isDotMo && !empty($config['TieuDeDot'])) {
 ?>
 
 <?php
-// Tạo danh sách cảnh báo dựa trên lịch sử đơn
-$warnings = [];
-if ($daNopDon && $isDotMo) {
-    $warnings[] = "<strong>Đề nghị hủy học phần</strong> — đang chờ xử lý trong đợt \"" . htmlspecialchars($config['TieuDeDot']) . "\". Bạn không thể nộp thêm đơn trong đợt này.";
-}
-// Thêm các đơn ở đợt trước nếu có
-foreach ($lichSuDon as $don) {
-    $trangThai = $don['trang_thai'] ?? '';
-    $dot = htmlspecialchars($don['tieu_de_dot'] ?? '');
-    if ($daNopDon && $isDotMo && $dot === $config['TieuDeDot']) continue; // Đã hiển thị ở trên
-    if (mb_stripos($trangThai, 'Chờ') !== false) {
-        $warnings[] = "<strong>Đợt " . $dot . "</strong> — đang chờ xử lý.";
-    } elseif (mb_stripos($trangThai, 'Từ chối') !== false) {
-        $ghiChu = !empty($don['ghi_chu_admin']) ? ' Lý do: ' . htmlspecialchars($don['ghi_chu_admin']) : '';
-        $warnings[] = "<strong>Đợt " . $dot . "</strong> — <span style=\"color:#dc2626;\">đã bị từ chối</span>." . $ghiChu;
-    } elseif (mb_stripos($trangThai, 'duyệt') !== false) {
-        $warnings[] = "<strong>Đợt " . $dot . "</strong> — <span style=\"color:#059669;\">đã được duyệt</span>.";
-    }
-}
+// (Phần cảnh báo lịch sử đã được chuyển xuống bảng Lịch sử bên dưới)
 ?>
-
-<?php if (!empty($warnings)): ?>
-<div class="notice-card" style="margin-bottom: 24px; background: linear-gradient(135deg, #fef2f2, #fee2e2); border-color: #fca5a5;">
-    <h6 style="color: #991b1b;"><i class="fas fa-exclamation-circle"></i> LƯU Ý VỀ ĐƠN HỦY HỌC PHẦN</h6>
-    <ul>
-        <?php foreach ($warnings as $w): ?>
-            <li style="color: #991b1b; padding-bottom: 6px;"><?= $w ?></li>
-        <?php endforeach; ?>
-    </ul>
-</div>
-<?php endif; ?>
 
 <?php if (!$isDotMo): ?>
 <!-- === MÀN HÌNH KHÓA: Đợt đã đóng === -->
