@@ -20,7 +20,7 @@ $service = GoogleSheetService::getInstance();
 // === Gate Check: Kiểm tra Đợt mở ===
 $config = $service->getHuyHocPhanConfig();
 
-if ($config['TrangThai'] !== 'Mở') {
+if (mb_strtolower(trim($config['TrangThai'])) !== 'mở') {
     Response::error('Đợt đăng ký hủy học phần hiện đã đóng.');
 }
 
@@ -48,8 +48,6 @@ $linkMinhChung = '';
 $hasFile = isset($_FILES['file_minh_chung']) && $_FILES['file_minh_chung']['error'] === UPLOAD_ERR_OK;
 
 if ($hasFile) {
-    $file = $_FILES['file_minh_chung'];
-
     $file = $_FILES['file_minh_chung'];
     ApiHandler::validateUploadFile($file);
 
