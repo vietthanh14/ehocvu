@@ -71,6 +71,7 @@ if ($hasFile) {
 $data = [
     'ma_sv'           => $student['ma_sv'],
     'ho_ten'          => $student['ho_ten'],
+    'ngay_sinh'       => $student['ngay_sinh'] ?? '',
     'khoa'            => $student['ten_khoa'] ?? '',
     'he'              => $student['ten_he'] ?? '',
     'nganh'           => $student['chuyen_nganh'] ?? '',

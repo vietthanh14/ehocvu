@@ -131,7 +131,7 @@ class GoogleSheetService {
      * Lấy toàn bộ dữ liệu Sheet HuyHocPhan_Requests — cache chung.
      */
     private function fetchHuyHocPhanSheet(): ?array {
-        return $this->fetchSheetDataCached('hhp_requests_all', SHEET_HUY_HOC_PHAN_REQUESTS . '!A2:M', self::CACHE_TTL['hhp_requests'], true);
+        return $this->fetchSheetDataCached('hhp_requests_all', SHEET_HUY_HOC_PHAN_REQUESTS . '!A2:N', self::CACHE_TTL['hhp_requests'], true);
     }
 
     // =========================================
@@ -596,7 +596,7 @@ class GoogleSheetService {
         $values = $this->fetchHuyHocPhanSheet() ?: [];
         foreach ($values as $row) {
             $rowMaSv = trim($row[1] ?? '');
-            $rowDot  = trim($row[7] ?? '');
+            $rowDot  = trim($row[8] ?? '');
             if (strtolower($rowMaSv) === strtolower(trim($maSv)) && $rowDot === $tieuDeDot) {
                 return true;
             }
@@ -612,19 +612,20 @@ class GoogleSheetService {
             date('d/m/Y H:i:s'),           // A: Timestamp
             $data['ma_sv'],            // B: MaSV
             $data['ho_ten'],           // C: HoTen
-            $data['khoa'] ?? '',       // D: Khoa
-            $data['he'] ?? '',         // E: Hệ
-            $data['nganh'] ?? '',      // F: Ngành
-            $data['lop'] ?? '',        // G: Lớp
-            $data['tieu_de_dot'],      // H: TieuDeDot
-            $data['danh_sach_mon'],    // I: DanhSachMonHuy
-            $data['ly_do'],            // J: LyDo
-            $data['link_minh_chung'] ?? '', // K: LinkMinhChung
-            'Chờ xử lý',              // L: TrangThai
-            '',                        // M: GhiChuAdmin
+            $data['ngay_sinh'] ?? '',   // D: NgaySinh
+            $data['khoa'] ?? '',       // E: Khoa
+            $data['he'] ?? '',         // F: Hệ
+            $data['nganh'] ?? '',      // G: Ngành
+            $data['lop'] ?? '',        // H: Lớp
+            $data['tieu_de_dot'],      // I: TieuDeDot
+            $data['danh_sach_mon'],    // J: DanhSachMonHuy
+            $data['ly_do'],            // K: LyDo
+            $data['link_minh_chung'] ?? '', // L: LinkMinhChung
+            'Chờ xử lý',              // M: TrangThai
+            '',                        // N: GhiChuAdmin
         ];
 
-        $success = $this->appendRowToSheet(SHEET_HUY_HOC_PHAN_REQUESTS . '!A:M', $rowData);
+        $success = $this->appendRowToSheet(SHEET_HUY_HOC_PHAN_REQUESTS . '!A:N', $rowData);
         if ($success) {
             $this->cacheManager->clear('hhp_requests_all');
         }
@@ -644,12 +645,12 @@ class GoogleSheetService {
             if (strtolower($rowMaSv) === strtolower(trim($maSv))) {
                 $history[] = [
                     'timestamp'      => $row[0] ?? '',
-                    'tieu_de_dot'    => $row[7] ?? '',
-                    'danh_sach_mon'  => $row[8] ?? '',
-                    'ly_do'          => $row[9] ?? '',
-                    'link_minh_chung'=> $row[10] ?? '',
-                    'trang_thai'     => $row[11] ?? 'Chờ xử lý',
-                    'ghi_chu_admin'  => $row[12] ?? '',
+                    'tieu_de_dot'    => $row[8] ?? '',
+                    'danh_sach_mon'  => $row[9] ?? '',
+                    'ly_do'          => $row[10] ?? '',
+                    'link_minh_chung'=> $row[11] ?? '',
+                    'trang_thai'     => $row[12] ?? 'Chờ xử lý',
+                    'ghi_chu_admin'  => $row[13] ?? '',
                 ];
             }
         }
