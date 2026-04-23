@@ -585,14 +585,28 @@ class GoogleSheetService {
 
         try {
             $response = $this->service->spreadsheets_values->get($this->spreadsheetId, SHEET_CONFIG_HUY_HOC_PHAN);
-            $row = $response->getValues()[0] ?? [];
+            $values = $response->getValues() ?: [];
+
+            $activeRow = [];
+            // Tìm đợt có trạng thái "Mở"
+            foreach ($values as $row) {
+                if (mb_strtolower(trim($row[0] ?? '')) === 'mở') {
+                    $activeRow = $row;
+                    break;
+                }
+            }
+
+            // Nếu không có đợt nào "Mở", lấy đợt cuối cùng trong danh sách
+            if (empty($activeRow) && !empty($values)) {
+                $activeRow = end($values);
+            }
 
             $config = [
-                'TrangThai'    => trim($row[0] ?? 'Đóng'),
-                'TieuDeDot'    => trim($row[1] ?? ''),
-                'TuNgay'       => trim($row[2] ?? ''),
-                'DenNgay'      => trim($row[3] ?? ''),
-                'ThongBaoDong' => trim($row[4] ?? 'Hệ thống hiện không mở đợt đăng ký hủy học phần.'),
+                'TrangThai'    => trim($activeRow[0] ?? 'Đóng'),
+                'TieuDeDot'    => trim($activeRow[1] ?? ''),
+                'TuNgay'       => trim($activeRow[2] ?? ''),
+                'DenNgay'      => trim($activeRow[3] ?? ''),
+                'ThongBaoDong' => trim($activeRow[4] ?? 'Hệ thống hiện không mở đợt đăng ký hủy học phần.'),
             ];
 
             $this->cacheManager->set($cacheKey, $config);

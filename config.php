@@ -27,7 +27,7 @@ define('SHEET_REQUEST_LIST', 'Sheet3');
 define('SHEET_NOTIFICATION', 'ThongBao');
 
 // Cấu hình tính năng Hủy học phần
-define('SHEET_CONFIG_HUY_HOC_PHAN', 'Config_HuyHocPhan!A2:E2');
+define('SHEET_CONFIG_HUY_HOC_PHAN', 'Config_HuyHocPhan!A2:E');
 define('SHEET_COURSES_CATALOG', 'DanhSachMonHoc!A2:B');
 define('SHEET_HUY_HOC_PHAN_REQUESTS', 'HuyHocPhan_Requests');
 

@@ -11,7 +11,7 @@ $config = $service->getHuyHocPhanConfig();
 $lichSuDon = $service->getHuyHocPhanHistory($student['ma_sv']);
 
 // Kiểm tra trạng thái Đợt mở
-$isDotMo = ($config['TrangThai'] === 'Mở');
+$isDotMo = (mb_strtolower(trim($config['TrangThai'])) === 'mở');
 
 // Kiểm tra thời gian
 if ($isDotMo && !empty($config['TuNgay']) && !empty($config['DenNgay'])) {
