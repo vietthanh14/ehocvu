@@ -140,9 +140,8 @@ $student = $_SESSION['student'];
         <div class="sidebar-section">
             <div class="sidebar-label">Menu chính</div>
             <ul class="sidebar-nav">
-                <li><a href="dashboard.php?page=home" class="<?= $page == 'home' ? 'active' : '' ?>"><i class="fas fa-chart-pie"></i> Bảng điều khiển</a></li>
-                <li><a href="dashboard.php?page=profile" class="<?= $page == 'profile' ? 'active' : '' ?>"><i class="fas fa-user"></i> Thông tin cá nhân</a></li>
-                <li><a href="dashboard.php?page=dangky" class="<?= $page == 'dangky' ? 'active' : '' ?>"><i class="fas fa-file-circle-plus"></i> Đăng ký thủ tục</a></li>
+                <li><a href="dashboard.php?page=home" class="<?= $page == 'home' ? 'active' : '' ?>"><i class="fas fa-user"></i> Thông tin cá nhân</a></li>
+                <li><a href="dashboard.php?page=dangky" class="<?= $page == 'dangky' ? 'active' : '' ?>"><i class="fas fa-file-circle-plus"></i> Đăng kí thủ tục bảo lưu học lại</a></li>
             </ul>
         </div>
         <div class="sidebar-section" style="margin-top: auto;">
@@ -157,7 +156,7 @@ $student = $_SESSION['student'];
     <main class="main fade-in">
         <?php if ($page == 'home'): ?>
             <div class="page-header">
-                <h2>Bảng điều khiển</h2>
+                <h2>Thông tin cá nhân</h2>
                 <span class="breadcrumb-text"><i class="fas fa-home"></i> Trang chủ</span>
             </div>
             <div class="notice-card">
@@ -168,28 +167,23 @@ $student = $_SESSION['student'];
                     <li><strong>Biểu mẫu thủ tục:</strong> Sinh viên tải các biểu mẫu đơn đăng ký <a href="https://drive.google.com/drive/folders/1zs6cYMC95_dpMt29hSVpWhr0As10Y8eA" target="_blank" style="color: #0f766e; font-weight: 600; text-decoration: underline;">tại đây</a>.</li>
                 </ul>
             </div>
-            <div class="section-title">
-                <span class="icon-circle teal"><i class="fas fa-layer-group"></i></span>
-                Hồ sơ thủ tục của bạn
-            </div>
-            <div class="card-modern">
-                <?php include 'pages/table_lichsu.php'; ?>
-            </div>
-
-        <?php elseif ($page == 'profile'): ?>
-            <div class="page-header">
-                <h2>Thông tin cá nhân</h2>
-                <span class="breadcrumb-text"><i class="fas fa-home"></i> Trang chủ / Thông tin</span>
-            </div>
             <?php include 'pages/thongtin_canhan.php'; ?>
 
         <?php elseif ($page == 'dangky'): ?>
             <div class="page-header">
-                <h2>Đăng ký thủ tục mới</h2>
+                <h2>Đăng kí thủ tục bảo lưu học lại</h2>
                 <span class="breadcrumb-text"><i class="fas fa-home"></i> Trang chủ / Đăng ký</span>
             </div>
-            <div class="card-modern" style="padding: 28px;">
+            <div class="card-modern" style="padding: 28px; margin-bottom: 24px;">
                 <?php include 'pages/form_dangky.php'; ?>
+            </div>
+
+            <div class="section-title">
+                <span class="icon-circle teal"><i class="fas fa-layer-group"></i></span>
+                Lịch sử thủ tục của bạn
+            </div>
+            <div class="card-modern">
+                <?php include 'pages/table_lichsu.php'; ?>
             </div>
 
         <?php endif; ?>
