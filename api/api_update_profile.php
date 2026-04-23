@@ -1,10 +1,9 @@
 <?php
-require_once __DIR__ . '/config.php';
-require_once __DIR__ . '/core/Response.php';
-require_once __DIR__ . '/core/Security.php';
+require_once __DIR__ . '/../config.php';
+require_once __DIR__ . '/../core/Response.php';
+require_once __DIR__ . '/../core/ApiHandler.php';
 
-Security::requirePost();
-$student = Security::requireAuth();
+$student = ApiHandler::init();
 $maSv = $student['ma_sv'];
 $newPhone = trim($_POST['sdt'] ?? '');
 
@@ -18,7 +17,7 @@ if (!preg_match('/^[0-9]{9,11}$/', $newPhone)) {
 
 Security::checkSessionLock('update_profile', 10, $maSv);
 
-require_once __DIR__ . '/GoogleSheetService.php';
+require_once __DIR__ . '/../core/GoogleSheetService.php';
 $service = GoogleSheetService::getInstance();
 
 $success = $service->updateStudentPhone($maSv, $newPhone);

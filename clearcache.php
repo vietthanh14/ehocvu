@@ -13,7 +13,7 @@ if (!isset($_SESSION['student'])) {
     exit;
 }
 
-require_once __DIR__ . '/CacheManager.php';
+require_once __DIR__ . '/core/CacheManager.php';
 $cacheManager = new CacheManager();
 $count = $cacheManager->clearAll();
 

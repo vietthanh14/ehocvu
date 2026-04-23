@@ -2,7 +2,7 @@
 class CacheManager {
     private string $cacheDir;
 
-    public function __construct(string $cacheDir = __DIR__ . '/cache') {
+    public function __construct(string $cacheDir = __DIR__ . '/../cache') {
         $this->cacheDir = rtrim($cacheDir, '/');
         if (!is_dir($this->cacheDir)) {
             mkdir($this->cacheDir, 0777, true);
@@ -80,14 +80,14 @@ class CacheManager {
     }
 
     /**
-     * Dọn dẹp các file cache quá cũ (hơn 1 giờ).
+     * Dọn dẹp các file cache quá cũ (hơn 24 giờ) để tránh đầy ổ cứng.
      */
     private function cleanup(): void {
         $files = glob($this->cacheDir . '/*.json');
         $now = time();
         foreach ($files as $f) {
-            // Tránh xóa các file rate_limit đang hoạt động (lockoutTime), nhưng xóa file cache data thông thường
-            if (filemtime($f) < $now - 3600) {
+            // Xóa file cache nếu đã tồn tại hơn 24 giờ (thời gian sống tối đa của cache là 24h đối với courses_catalog)
+            if (filemtime($f) < $now - 86400) {
                 @unlink($f);
             }
         }

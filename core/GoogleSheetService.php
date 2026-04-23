@@ -1,6 +1,6 @@
 <?php
-require_once __DIR__ . '/vendor/autoload.php';
-require_once __DIR__ . '/config.php';
+require_once __DIR__ . '/../vendor/autoload.php';
+require_once __DIR__ . '/../config.php';
 require_once __DIR__ . '/CacheManager.php';
 class GoogleSheetService {
     private static ?self $instance = null;
@@ -73,91 +73,67 @@ class GoogleSheetService {
     // =========================================
 
     /**
-     * Lấy toàn bộ dữ liệu Sheet 1 (DS sinh viên) — cache chung.
+     * Hàm dùng chung để fetch data từ Google Sheets và lưu Cache
      */
-    private function fetchStudentListSheet(): ?array {
-        $cacheKey = 'student_list';
-        $cached = $this->cacheManager->get($cacheKey, self::CACHE_TTL['student_list']);
+    private function fetchSheetDataCached(string $cacheKey, string $range, int $ttl, bool $returnEmptyArrayOnFail = false): ?array {
+        $cached = $this->cacheManager->get($cacheKey, $ttl);
         if ($cached !== null) {
             return $cached;
         }
 
         try {
-            $range = SHEET_STUDENT_LIST;
             $response = $this->service->spreadsheets_values->get($this->spreadsheetId, $range);
             $values = $response->getValues() ?: [];
             $this->cacheManager->set($cacheKey, $values);
-            return empty($values) ? null : $values;
+            return empty($values) && !$returnEmptyArrayOnFail ? null : $values;
         } catch (Exception $e) {
-            error_log("Google Sheets Error fetchStudentListSheet: " . $e->getMessage());
-            throw new Exception("Lỗi kết nối Google Sheets: " . $e->getMessage());
+            error_log("Google Sheets Error fetching $cacheKey ($range): " . $e->getMessage());
+            if ($returnEmptyArrayOnFail) return [];
+            throw new Exception("Lỗi kết nối Google Sheets khi lấy $cacheKey: " . $e->getMessage());
         }
+    }
+
+    /**
+     * Hàm dùng chung để ghi 1 dòng mới vào Google Sheets
+     */
+    public function appendRowToSheet(string $range, array $rowData): bool {
+        try {
+            $body = new \Google_Service_Sheets_ValueRange(['values' => [$rowData]]);
+            $params = ['valueInputOption' => 'USER_ENTERED'];
+            $result = $this->service->spreadsheets_values->append($this->spreadsheetId, $range, $body, $params);
+            return $result->getUpdates() != null;
+        } catch (Exception $e) {
+            error_log("Google Sheets Error appendRowToSheet ($range): " . $e->getMessage());
+            return false;
+        }
+    }
+
+    /**
+     * Lấy toàn bộ dữ liệu Sheet 1 (DS sinh viên) — cache chung.
+     */
+    private function fetchStudentListSheet(): ?array {
+        return $this->fetchSheetDataCached('student_list', SHEET_STUDENT_LIST, self::CACHE_TTL['student_list']);
     }
 
     /**
      * Lấy toàn bộ dữ liệu Sheet 2 (DS bị xóa tên) — cache chung.
      */
     private function fetchExpelledListSheet(): ?array {
-        $cacheKey = 'expelled_list';
-        $cached = $this->cacheManager->get($cacheKey, self::CACHE_TTL['expelled_list']);
-        if ($cached !== null) {
-            return $cached;
-        }
-
-        try {
-            $range = SHEET_EXPELLED_LIST;
-            $response = $this->service->spreadsheets_values->get($this->spreadsheetId, $range);
-            $values = $response->getValues() ?: [];
-            $this->cacheManager->set($cacheKey, $values);
-            return empty($values) ? null : $values;
-        } catch (Exception $e) {
-            error_log("Google Sheets Error fetchExpelledListSheet: " . $e->getMessage());
-            throw new Exception("Lỗi kết nối Google Sheets: " . $e->getMessage());
-        }
+        return $this->fetchSheetDataCached('expelled_list', SHEET_EXPELLED_LIST, self::CACHE_TTL['expelled_list']);
     }
 
     /**
      * Lấy toàn bộ dữ liệu Sheet 3 (DS yêu cầu) — cache chung.
      */
     private function fetchRequestListSheet(): ?array {
-        $cacheKey = 'requests_all';
-        $cached = $this->cacheManager->get($cacheKey, self::CACHE_TTL['requests']);
-        if ($cached !== null) {
-            return $cached;
-        }
-
-        try {
-            $range = SHEET_REQUEST_LIST;
-            $response = $this->service->spreadsheets_values->get($this->spreadsheetId, $range);
-            $values = $response->getValues() ?: [];
-            $this->cacheManager->set($cacheKey, $values);
-            return empty($values) ? null : $values;
-        } catch (Exception $e) {
-            error_log("Google Sheets Error fetchRequestListSheet: " . $e->getMessage());
-            throw new Exception("Lỗi kết nối Google Sheets: " . $e->getMessage());
-        }
+        return $this->fetchSheetDataCached('requests_all', SHEET_REQUEST_LIST, self::CACHE_TTL['requests']);
     }
 
     /**
      * Lấy toàn bộ dữ liệu Sheet HuyHocPhan_Requests — cache chung.
      */
     private function fetchHuyHocPhanSheet(): ?array {
-        $cacheKey = 'hhp_requests_all';
-        $cached = $this->cacheManager->get($cacheKey, self::CACHE_TTL['hhp_requests']);
-        if ($cached !== null) {
-            return $cached;
-        }
-
-        try {
-            $range = SHEET_HUY_HOC_PHAN_REQUESTS . '!A2:M';
-            $response = $this->service->spreadsheets_values->get($this->spreadsheetId, $range);
-            $values = $response->getValues() ?: [];
-            $this->cacheManager->set($cacheKey, $values);
-            return $values;
-        } catch (Exception $e) {
-            error_log("Google Sheets Error fetchHuyHocPhanSheet: " . $e->getMessage());
-            return [];
-        }
+        return $this->fetchSheetDataCached('hhp_requests_all', SHEET_HUY_HOC_PHAN_REQUESTS . '!A2:M', self::CACHE_TTL['hhp_requests'], true);
     }
 
     // =========================================
@@ -168,23 +144,10 @@ class GoogleSheetService {
      * Lấy toàn bộ dữ liệu Sheet Thông báo
      */
     private function fetchNotificationSheet(): ?array {
-        $cacheKey = 'notifications';
-        $cached = $this->cacheManager->get($cacheKey, self::CACHE_TTL['notifications']);
-        if ($cached !== null) {
-            return $cached;
-        }
-
+        if (!defined('SHEET_NOTIFICATION')) return null;
         try {
-            if (!defined('SHEET_NOTIFICATION')) return null;
-            $range = SHEET_NOTIFICATION;
-            $response = $this->service->spreadsheets_values->get($this->spreadsheetId, $range);
-            $values = $response->getValues() ?: [];
-            $this->cacheManager->set($cacheKey, $values);
-            return empty($values) ? null : $values;
+            return $this->fetchSheetDataCached('notifications', SHEET_NOTIFICATION, self::CACHE_TTL['notifications']);
         } catch (Exception $e) {
-            // Không log lỗi ngắt luồng nếu admin chưa tạo sheet ThongBao
-            // Ghi cache mảng rỗng để tránh spam API liên tục
-            $this->cacheManager->set($cacheKey, []);
             return null;
         }
     }
@@ -453,47 +416,30 @@ class GoogleSheetService {
      * Ghi yêu cầu đăng ký mới
      */
     public function appendRequest($data) {
-        try {
-            $range = SHEET_REQUEST_LIST;
+        $rowData = [
+            date('d/m/Y H:i:s'),
+            $data['ma_sv'],
+            $data['ho_ten'],
+            $data['ngay_sinh'] ?? '',
+            $data['sdt'] ?? '',
+            $data['ten_khoa'] ?? '',
+            $data['ten_he'] ?? '',
+            $data['ten_lop'],
+            $data['chuyen_nganh'],
+            $data['nien_khoa'] ?? '',
+            $data['loai_yeu_cau'],
+            $data['thoi_gian_bao_luu_den'] ?? '',
+            $data['link_don_dang_ky'] ?? '',
+            'Chờ duyệt',
+            $data['ly_do'] ?? '',
+            '', '', ''
+        ];
 
-            $values = [
-                [
-                    date('d/m/Y H:i:s'),
-                    $data['ma_sv'],
-                    $data['ho_ten'],
-                    $data['ngay_sinh'] ?? '',
-                    $data['sdt'] ?? '',
-                    $data['ten_khoa'] ?? '',
-                    $data['ten_he'] ?? '',
-                    $data['ten_lop'],
-                    $data['chuyen_nganh'],
-                    $data['nien_khoa'] ?? '',
-                    $data['loai_yeu_cau'],
-                    $data['thoi_gian_bao_luu_den'] ?? '',
-                    $data['link_don_dang_ky'] ?? '',
-                    'Chờ duyệt',
-                    $data['ly_do'] ?? '',
-                    '', '', ''
-                ]
-            ];
-
-            $body = new \Google_Service_Sheets_ValueRange([
-                'values' => $values
-            ]);
-            $params = [
-                'valueInputOption' => 'USER_ENTERED'
-            ];
-
-            $result = $this->service->spreadsheets_values->append($this->spreadsheetId, $range, $body, $params);
-
-            // Xóa cache request để lần sau lấy dữ liệu mới
+        $success = $this->appendRowToSheet(SHEET_REQUEST_LIST, $rowData);
+        if ($success) {
             $this->cacheManager->invalidateRequestsCache();
-
-            return $result->getUpdates() != null;
-        } catch (Exception $e) {
-            error_log("Google Sheets Error appendRequest: " . $e->getMessage());
-            return false;
         }
+        return $success;
     }
 
     /**
@@ -628,17 +574,9 @@ class GoogleSheetService {
      * @return array [['id' => 'INT123', 'name' => 'Toán cao cấp'], ...]
      */
     public function getCoursesCatalog(): array {
-        $cacheKey = 'courses_catalog';
-        $cached = $this->cacheManager->get($cacheKey, self::CACHE_TTL['courses_catalog']);
-        if ($cached !== null) {
-            return $cached;
-        }
-
         try {
-            $response = $this->service->spreadsheets_values->get($this->spreadsheetId, SHEET_COURSES_CATALOG);
-            $values = $response->getValues() ?: [];
+            $values = $this->fetchSheetDataCached('courses_catalog', SHEET_COURSES_CATALOG, self::CACHE_TTL['courses_catalog'], true);
             $courses = [];
-
             foreach ($values as $row) {
                 $id = trim($row[0] ?? '');
                 $name = trim($row[1] ?? '');
@@ -646,11 +584,8 @@ class GoogleSheetService {
                     $courses[] = ['id' => $id, 'name' => $name];
                 }
             }
-
-            $this->cacheManager->set($cacheKey, $courses);
             return $courses;
         } catch (Exception $e) {
-            error_log("Google Sheets Error getCoursesCatalog: " . $e->getMessage());
             return [];
         }
     }
@@ -675,38 +610,27 @@ class GoogleSheetService {
      * Ghi đơn Hủy học phần mới vào Google Sheet
      */
     public function appendHuyHocPhanRequest(array $data): bool {
-        try {
-            $range = SHEET_HUY_HOC_PHAN_REQUESTS . '!A:M';
-            $timestamp = date('d/m/Y H:i:s');
+        $rowData = [
+            date('d/m/Y H:i:s'),           // A: Timestamp
+            $data['ma_sv'],            // B: MaSV
+            $data['ho_ten'],           // C: HoTen
+            $data['khoa'] ?? '',       // D: Khoa
+            $data['he'] ?? '',         // E: Hệ
+            $data['nganh'] ?? '',      // F: Ngành
+            $data['lop'] ?? '',        // G: Lớp
+            $data['tieu_de_dot'],      // H: TieuDeDot
+            $data['danh_sach_mon'],    // I: DanhSachMonHuy
+            $data['ly_do'],            // J: LyDo
+            $data['link_minh_chung'] ?? '', // K: LinkMinhChung
+            'Chờ xử lý',              // L: TrangThai
+            '',                        // M: GhiChuAdmin
+        ];
 
-            $rowData = [
-                $timestamp,               // A: Timestamp
-                $data['ma_sv'],            // B: MaSV
-                $data['ho_ten'],           // C: HoTen
-                $data['khoa'] ?? '',       // D: Khoa
-                $data['he'] ?? '',         // E: Hệ
-                $data['nganh'] ?? '',      // F: Ngành
-                $data['lop'] ?? '',        // G: Lớp
-                $data['tieu_de_dot'],      // H: TieuDeDot
-                $data['danh_sach_mon'],    // I: DanhSachMonHuy
-                $data['ly_do'],            // J: LyDo
-                $data['link_minh_chung'] ?? '', // K: LinkMinhChung
-                'Chờ xử lý',              // L: TrangThai
-                '',                        // M: GhiChuAdmin
-            ];
-
-            $body = new \Google_Service_Sheets_ValueRange(['values' => [$rowData]]);
-            $params = ['valueInputOption' => 'USER_ENTERED'];
-            $this->service->spreadsheets_values->append($this->spreadsheetId, $range, $body, $params);
-
-            // Xóa cache để lần sau lấy dữ liệu mới
+        $success = $this->appendRowToSheet(SHEET_HUY_HOC_PHAN_REQUESTS . '!A:M', $rowData);
+        if ($success) {
             $this->cacheManager->clear('hhp_requests_all');
-
-            return true;
-        } catch (Exception $e) {
-            error_log("Google Sheets Error appendHuyHocPhanRequest: " . $e->getMessage());
-            return false;
         }
+        return $success;
     }
 
     /**

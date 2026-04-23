@@ -5,7 +5,8 @@
  * Biến $student đã có sẵn từ session
  */
 
-require_once __DIR__ . '/../GoogleSheetService.php';
+require_once __DIR__ . '/../core/GoogleSheetService.php';
+require_once __DIR__ . '/../core/UIHelper.php';
 $service = GoogleSheetService::getInstance();
 $config = $service->getHuyHocPhanConfig();
 $lichSuDon = $service->getHuyHocPhanHistory($student['ma_sv']);
@@ -79,7 +80,7 @@ foreach ($lichSuDon as $don) {
 </div>
 
 
-<?php else: ?>
+<?php elseif (!$daNopDon): ?>
 <!-- === FORM ĐĂNG KÝ HỦY HỌC PHẦN === -->
 
 <div class="notice-card" style="margin-bottom: 20px;">
@@ -91,7 +92,7 @@ foreach ($lichSuDon as $don) {
     </ul>
 </div>
 
-<form id="formHuyHocPhan" method="POST" action="api_submit_huyhocphan.php" enctype="multipart/form-data">
+<form id="formHuyHocPhan" method="POST" action="api/api_submit_huyhocphan.php" enctype="multipart/form-data">
 
     <!-- Ô tìm kiếm môn học (Autocomplete) -->
     <div class="form-field">
@@ -126,9 +127,12 @@ foreach ($lichSuDon as $don) {
     <!-- Minh chứng (Tùy chọn) -->
     <div class="form-field">
         <label>File minh chứng <span style="font-weight:400; text-transform:none; color: var(--text-light);">(Không bắt buộc)</span></label>
-        <input type="file" name="file_minh_chung" accept=".pdf,.jpg,.jpeg,.png,.doc,.docx"
-               style="width:100%; padding:10px; border:1.5px dashed var(--border); border-radius:10px; font-size:0.85rem; color:var(--text-mid); cursor:pointer;">
-        <span class="form-hint">Chấp nhận PDF, JPG, PNG, DOC, DOCX — Tối đa 10MB.</span>
+        <?php 
+        $inputName = 'file_minh_chung';
+        $isRequired = false;
+        $hintText = 'Chấp nhận PDF, JPG, PNG, DOC, DOCX — Tối đa 10MB';
+        include __DIR__ . '/../includes/components/file_upload.php'; 
+        ?>
     </div>
 
     <!-- Nút gửi -->
@@ -183,7 +187,7 @@ foreach ($lichSuDon as $don) {
 let allCourses = [];
 
 // Tải danh sách môn học khi trang load
-fetch('api_get_courses.php')
+fetch('api/api_get_courses.php')
 .then(r => r.json())
 .then(data => {
     if (data.success && data.courses) {
@@ -261,33 +265,23 @@ document.getElementById('formHuyHocPhan').addEventListener('submit', function(e)
     progress.style.display = 'block';
     progressText.textContent = 'Đang gửi đề nghị...';
 
-    fetch('api_submit_huyhocphan.php', { method: 'POST', body: new FormData(this) })
+    fetch('api/api_submit_huyhocphan.php', { method: 'POST', body: new FormData(this) })
     .then(r => r.json())
     .then(data => {
         spinner.style.display = 'none';
         progress.style.display = 'none';
 
         if (data.success) {
-            Swal.fire({
-                icon: 'success',
-                title: 'Thành công!',
-                text: data.message,
-                confirmButtonColor: '#0f766e'
-            }).then(() => location.reload());
+            AppAlert.success('Thành công!', data.message).then(() => location.reload());
         } else {
-            Swal.fire({
-                icon: 'error',
-                title: 'Lỗi',
-                text: data.message,
-                confirmButtonColor: '#ef4444'
-            });
+            AppAlert.error('Lỗi', data.message);
             btn.disabled = false;
         }
     })
     .catch(() => {
         spinner.style.display = 'none';
         progress.style.display = 'none';
-        Swal.fire({ icon: 'error', title: 'Lỗi kết nối', text: 'Không thể kết nối tới máy chủ.' });
+        AppAlert.error('Lỗi kết nối', 'Không thể kết nối tới máy chủ.');
         btn.disabled = false;
     });
 });
@@ -299,12 +293,6 @@ document.getElementById('formHuyHocPhan').addEventListener('submit', function(e)
 <?php
 $lichSuRendered = [];
 foreach ($lichSuDon as $idx => $don) {
-    $ts = $don['trang_thai'];
-    $bc = '#94a3b8'; $bg = '#f1f5f9';
-    if (mb_stripos($ts, 'duyệt') !== false) { $bc = '#059669'; $bg = '#ecfdf5'; }
-    elseif (mb_stripos($ts, 'Từ chối') !== false) { $bc = '#dc2626'; $bg = '#fef2f2'; }
-    elseif (mb_stripos($ts, 'Chờ') !== false) { $bc = '#d97706'; $bg = '#fffbeb'; }
-    $don['_bc'] = $bc; $don['_bg'] = $bg;
     $don['_rbg'] = $idx % 2 === 0 ? '#fff' : '#f8fafc';
     $lichSuRendered[] = $don;
 }
@@ -323,6 +311,8 @@ foreach ($lichSuDon as $idx => $don) {
                         <th style="padding:12px 14px; text-align:left; white-space:nowrap;">Thời gian</th>
                         <th style="padding:12px 14px; text-align:left; white-space:nowrap;">Đợt</th>
                         <th style="padding:12px 14px; text-align:left;">Môn hủy</th>
+                        <th style="padding:12px 14px; text-align:left;">Lý do</th>
+                        <th style="padding:12px 14px; text-align:center;">Minh chứng</th>
                         <th style="padding:12px 14px; text-align:center; white-space:nowrap;">Trạng thái</th>
                         <th style="padding:12px 14px; text-align:left;">Phản hồi</th>
                     </tr>
@@ -333,10 +323,16 @@ foreach ($lichSuDon as $idx => $don) {
                         <td style="padding:11px 14px; white-space:nowrap; color:var(--text-mid);"><?= htmlspecialchars($d['timestamp']) ?></td>
                         <td style="padding:11px 14px; white-space:nowrap; font-weight:600; color:var(--text-dark);"><?= htmlspecialchars($d['tieu_de_dot']) ?></td>
                         <td style="padding:11px 14px; color:var(--text-mid); white-space:pre-line; max-width:280px;"><?= htmlspecialchars($d['danh_sach_mon']) ?></td>
+                        <td style="padding:11px 14px; color:var(--text-mid); max-width:200px;"><?= htmlspecialchars($d['ly_do']) ?></td>
                         <td style="padding:11px 14px; text-align:center;">
-                            <span style="display:inline-block; padding:4px 12px; border-radius:20px; font-size:0.78rem; font-weight:600; color:<?= $d['_bc'] ?>; background:<?= $d['_bg'] ?>; border:1px solid <?= $d['_bc'] ?>30;">
-                                <?= htmlspecialchars($d['trang_thai']) ?>
-                            </span>
+                            <?php if (!empty($d['link_minh_chung'])): ?>
+                                <a href="<?= htmlspecialchars($d['link_minh_chung']) ?>" target="_blank" style="color:var(--primary); text-decoration:none;" title="Xem minh chứng"><i class="fas fa-paperclip"></i></a>
+                            <?php else: ?>
+                                <span style="color:#cbd5e1;">—</span>
+                            <?php endif; ?>
+                        </td>
+                        <td style="padding:11px 14px; text-align:center;">
+                            <?= UIHelper::renderStatusBadge($d['trang_thai']) ?>
                         </td>
                         <td style="padding:11px 14px; color:var(--text-mid); font-style:<?= empty($d['ghi_chu_admin']) ? 'italic' : 'normal' ?>;">
                             <?= !empty($d['ghi_chu_admin']) ? htmlspecialchars($d['ghi_chu_admin']) : '<span style="opacity:0.4;">—</span>' ?>
@@ -354,9 +350,7 @@ foreach ($lichSuDon as $idx => $don) {
         <div class="hhp-card">
             <div class="hhp-card-header">
                 <span class="hhp-card-dot"><?= htmlspecialchars($d['tieu_de_dot']) ?></span>
-                <span class="hhp-card-badge" style="color:<?= $d['_bc'] ?>; background:<?= $d['_bg'] ?>; border-color:<?= $d['_bc'] ?>30;">
-                    <?= htmlspecialchars($d['trang_thai']) ?>
-                </span>
+                <?= UIHelper::renderStatusBadge($d['trang_thai']) ?>
             </div>
             <div class="hhp-card-row">
                 <span class="hhp-card-label"><i class="fas fa-clock"></i> Thời gian</span>
@@ -366,6 +360,16 @@ foreach ($lichSuDon as $idx => $don) {
                 <span class="hhp-card-label"><i class="fas fa-book"></i> Môn hủy</span>
                 <span class="hhp-card-value" style="white-space:pre-line;"><?= htmlspecialchars($d['danh_sach_mon']) ?></span>
             </div>
+            <div class="hhp-card-row">
+                <span class="hhp-card-label"><i class="fas fa-info-circle"></i> Lý do</span>
+                <span class="hhp-card-value"><?= htmlspecialchars($d['ly_do']) ?></span>
+            </div>
+            <?php if (!empty($d['link_minh_chung'])): ?>
+            <div class="hhp-card-row">
+                <span class="hhp-card-label"><i class="fas fa-paperclip"></i> Minh chứng</span>
+                <span class="hhp-card-value"><a href="<?= htmlspecialchars($d['link_minh_chung']) ?>" target="_blank" style="color:var(--primary); text-decoration:none;"><i class="fas fa-external-link-alt"></i> Xem file</a></span>
+            </div>
+            <?php endif; ?>
             <?php if (!empty($d['ghi_chu_admin'])): ?>
             <div class="hhp-card-row">
                 <span class="hhp-card-label"><i class="fas fa-comment-dots"></i> Phản hồi</span>

@@ -1,11 +1,10 @@
 <?php
-require_once __DIR__ . '/GoogleSheetService.php';
-require_once __DIR__ . '/DriveUploader.php';
-require_once __DIR__ . '/core/Response.php';
-require_once __DIR__ . '/core/Security.php';
+require_once __DIR__ . '/../core/GoogleSheetService.php';
+require_once __DIR__ . '/../core/DriveUploader.php';
+require_once __DIR__ . '/../core/Response.php';
+require_once __DIR__ . '/../core/ApiHandler.php';
 
-Security::requirePost();
-$student = Security::requireAuth();
+$student = ApiHandler::init();
 $maSv = $student['ma_sv'];
 
 // === Lấy dữ liệu từ form ===
@@ -51,21 +50,8 @@ $hasFile = isset($_FILES['file_minh_chung']) && $_FILES['file_minh_chung']['erro
 if ($hasFile) {
     $file = $_FILES['file_minh_chung'];
 
-    // Validate kích thước
-    if ($file['size'] > 10 * 1024 * 1024) {
-        Response::error('File quá lớn. Vui lòng chọn file nhỏ hơn 10MB.');
-    }
-
-    // Validate MIME
-    $allowedTypes = ['application/pdf', 'image/jpeg', 'image/png', 'image/jpg',
-                     'application/msword', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'];
-    $finfo = finfo_open(FILEINFO_MIME_TYPE);
-    $realType = finfo_file($finfo, $file['tmp_name']);
-    finfo_close($finfo);
-
-    if (!in_array($realType, $allowedTypes)) {
-        Response::error('Định dạng file không hợp lệ. Chỉ chấp nhận PDF, JPG, PNG, DOC, DOCX.');
-    }
+    $file = $_FILES['file_minh_chung'];
+    ApiHandler::validateUploadFile($file);
 
     session_write_close();
     $uploadResult = DriveUploader::upload($file, $maSv, UPLOAD_SCRIPT_URL);

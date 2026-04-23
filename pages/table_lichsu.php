@@ -1,22 +1,11 @@
 <?php
 if (!isset($_SESSION['student'])) exit;
 
-require_once __DIR__ . '/../GoogleSheetService.php';
+require_once __DIR__ . '/../core/GoogleSheetService.php';
 $service = GoogleSheetService::getInstance();
 $requests = $service->getStudentRequests($_SESSION['student']['ma_sv']);
 
-// Tính badge color cho mỗi request
-function getStatusStyle($tt) {
-    $badgeBg = '#f1f5f9'; $badgeColor = '#64748b';
-    if (stripos($tt, 'chờ') !== false) {
-        $badgeBg = '#fef3c7'; $badgeColor = '#92400e';
-    } elseif (stripos($tt, 'duyệt') !== false || stripos($tt, 'thành công') !== false || stripos($tt, 'xong') !== false) {
-        $badgeBg = '#d1fae5'; $badgeColor = '#065f46';
-    } elseif (stripos($tt, 'từ chối') !== false || stripos($tt, 'hủy') !== false) {
-        $badgeBg = '#fee2e2'; $badgeColor = '#991b1b';
-    }
-    return ['bg' => $badgeBg, 'color' => $badgeColor];
-}
+require_once __DIR__ . '/../core/UIHelper.php';
 ?>
 
 <!-- ===== DESKTOP: Table view ===== -->
@@ -46,9 +35,7 @@ function getStatusStyle($tt) {
                         </td>
                     </tr>
                 <?php else: ?>
-                    <?php foreach ($requests as $idx => $req):
-                        $s = getStatusStyle($req['trang_thai']);
-                    ?>
+                    <?php foreach ($requests as $idx => $req): ?>
                         <tr>
                             <td style="text-align:center;"><?= $idx + 1 ?></td>
                             <td style="text-align:left; color: var(--text-light);"><i class="far fa-clock" style="margin-right:4px;"></i> <?= htmlspecialchars($req['thoi_gian']) ?></td>
@@ -59,7 +46,7 @@ function getStatusStyle($tt) {
                                     <a href="<?= htmlspecialchars($req['link_don_dang_ky']) ?>" target="_blank" class="icon-link-btn" title="Xem đơn"><i class="fas fa-file-alt"></i></a>
                                 <?php else: ?><span style="color:var(--text-light);">-</span><?php endif; ?>
                             </td>
-                            <td style="text-align:center;"><span class="status-badge" style="background:<?= $s['bg'] ?>;color:<?= $s['color'] ?>;"><?= htmlspecialchars($req['trang_thai']) ?></span></td>
+                            <td style="text-align:center;"><?= UIHelper::renderStatusBadge($req['trang_thai']) ?></td>
                             <td style="text-align:left; color:var(--text-mid); white-space:normal; min-width:140px; font-size:0.82rem;"><?= htmlspecialchars($req['ghi_chu']) ?></td>
                             <td style="text-align:center; font-weight:600;"><?= htmlspecialchars($req['so_quyet_dinh']) ?></td>
                             <td style="text-align:center;"><?= htmlspecialchars($req['ngay_quyet_dinh']) ?></td>
@@ -84,16 +71,14 @@ function getStatusStyle($tt) {
             <p>Chưa có thủ tục nào được đăng ký</p>
         </div>
     <?php else: ?>
-        <?php foreach ($requests as $idx => $req):
-            $s = getStatusStyle($req['trang_thai']);
-        ?>
+        <?php foreach ($requests as $idx => $req): ?>
             <div class="history-card">
                 <div class="history-card-header">
                     <div>
                         <span class="history-card-type"><?= htmlspecialchars($req['loai_yeu_cau']) ?></span>
                         <span class="history-card-time"><i class="far fa-clock"></i> <?= htmlspecialchars($req['thoi_gian']) ?></span>
                     </div>
-                    <span class="status-badge" style="background:<?= $s['bg'] ?>;color:<?= $s['color'] ?>;"><?= htmlspecialchars($req['trang_thai']) ?></span>
+                    <?= UIHelper::renderStatusBadge($req['trang_thai']) ?>
                 </div>
 
                 <div class="history-card-body">

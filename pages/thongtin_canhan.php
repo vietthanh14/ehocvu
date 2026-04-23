@@ -31,7 +31,7 @@ $student = $_SESSION['student'];
         </div>
     </div>
 
-<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
 <script>
 function editPhone() {
     const currentPhone = document.getElementById('txt-sdt').getAttribute('data-phone') || '';
@@ -56,15 +56,10 @@ function editPhone() {
             const newPhone = result.value.trim();
             
             // Hiện loading
-            Swal.fire({
-                title: 'Đang cập nhật...',
-                text: 'Vui lòng chờ trong giây lát.',
-                allowOutsideClick: false,
-                didOpen: () => { Swal.showLoading(); }
-            });
+            AppAlert.loading('Đang cập nhật... Vui lòng chờ.');
 
             // Gửi API
-            fetch('api_update_profile.php', {
+            fetch('api/api_update_profile.php', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
                 body: new URLSearchParams({ sdt: newPhone })
@@ -75,13 +70,13 @@ function editPhone() {
                     const spanSdt = document.getElementById('txt-sdt');
                     spanSdt.textContent = response.new_sdt;
                     spanSdt.setAttribute('data-phone', response.new_sdt);
-                    Swal.fire('Thành công!', response.message, 'success');
+                    AppAlert.success('Thành công!', response.message);
                 } else {
-                    Swal.fire('Lỗi', response.message, 'error');
+                    AppAlert.error('Lỗi', response.message);
                 }
             })
             .catch(e => {
-                Swal.fire('Lỗi', 'Không thể kết nối đến máy chủ.', 'error');
+                AppAlert.error('Lỗi', 'Không thể kết nối đến máy chủ.');
             });
         }
     });

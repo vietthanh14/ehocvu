@@ -1,7 +1,7 @@
 <?php
-require_once __DIR__ . '/GoogleSheetService.php';
-require_once __DIR__ . '/core/Response.php';
-require_once __DIR__ . '/core/Security.php';
+require_once __DIR__ . '/../core/GoogleSheetService.php';
+require_once __DIR__ . '/../core/Response.php';
+require_once __DIR__ . '/../core/Security.php';
 
 Security::requireAuth();
 

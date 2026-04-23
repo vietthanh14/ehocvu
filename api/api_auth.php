@@ -1,23 +1,23 @@
 <?php
-require_once __DIR__ . '/config.php';
+require_once __DIR__ . '/../config.php';
 session_start();
-require_once __DIR__ . '/core/Response.php';
-require_once __DIR__ . '/core/Security.php';
+require_once __DIR__ . '/../core/Response.php';
+require_once __DIR__ . '/../core/Security.php';
 
 Security::requirePost();
 
-require_once __DIR__ . '/GoogleSheetService.php';
+require_once __DIR__ . '/../core/GoogleSheetService.php';
 
 // === Rate Limiting (Chống Brute Force / Auto Submissions) ===
 $ip = $_SERVER['REMOTE_ADDR'] ?? 'unknown';
 $ipHash = md5($ip);
-$rateLimitFile = __DIR__ . '/cache/rate_limit_' . $ipHash . '.json';
+$rateLimitFile = __DIR__ . '/../cache/rate_limit_' . $ipHash . '.json';
 $attempts = 0;
 $lockoutTime = 0;
 
 // Tự động dọn file rate_limit cũ hơn 1 giờ (xác suất 1/10 request để không ảnh hưởng hiệu năng)
 if (mt_rand(1, 10) === 1) {
-    $oldFiles = glob(__DIR__ . '/cache/rate_limit_*.json');
+    $oldFiles = glob(__DIR__ . '/../cache/rate_limit_*.json');
     foreach ($oldFiles as $f) {
         if (filemtime($f) < time() - 3600) {
             @unlink($f);

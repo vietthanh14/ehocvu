@@ -19,6 +19,7 @@ if (isset($_SESSION['student'])) {
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     <link href="assets/style.css" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script src="assets/main.js"></script>
     <style>
         /* === Login-specific styles === */
         body {
@@ -206,7 +207,7 @@ if (isset($_SESSION['student'])) {
             spinner.style.display = 'inline-block';
             errorMsg.style.display = 'none';
 
-            fetch('api_auth.php', {
+            fetch('api/api_auth.php', {
                 method: 'POST',
                 headers: {'Content-Type': 'application/x-www-form-urlencoded'},
                 body: 'ma_sv=' + encodeURIComponent(masv) + '&ngay_sinh=' + encodeURIComponent(ngaysinh)
@@ -219,15 +220,13 @@ if (isset($_SESSION['student'])) {
                     } else {
                         btn.disabled = false;
                         spinner.style.display = 'none';
-                        errorMsg.innerText = data.message;
-                        errorMsg.style.display = 'block';
+                        AppAlert.error('Đăng nhập thất bại', data.message);
                     }
                 })
                 .catch(() => {
                     btn.disabled = false;
                     spinner.style.display = 'none';
-                    errorMsg.innerText = "Lỗi kết nối máy chủ!";
-                    errorMsg.style.display = 'block';
+                    AppAlert.error('Lỗi kết nối', 'Không thể kết nối đến máy chủ!');
                 });
         });
     </script>
