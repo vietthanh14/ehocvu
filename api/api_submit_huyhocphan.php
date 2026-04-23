@@ -11,6 +11,10 @@ $maSv = $student['ma_sv'];
 $danhSachMon = trim($_POST['danh_sach_mon'] ?? '');
 $lyDo        = trim($_POST['ly_do'] ?? '');
 
+// Sanitize chống Formula Injection
+$danhSachMon = Security::sanitizeForSheet($danhSachMon);
+$lyDo        = Security::sanitizeForSheet($lyDo);
+
 if (empty($danhSachMon) || empty($lyDo)) {
     Response::error('Vui lòng điền đầy đủ danh sách môn cần hủy và lý do.');
 }

@@ -1,7 +1,45 @@
 /**
- * AppAlert - Thư viện dùng chung cho các thông báo toàn hệ thống
- * Sử dụng SweetAlert2 để đồng bộ giao diện
+ * AppAlert & AppFetch - Thư viện dùng chung cho hệ thống
+ * - AppAlert: Thông báo đồng nhất (SweetAlert2)
+ * - AppFetch: Gửi request với CSRF token tự động
  */
+
+// === CSRF Helper ===
+function getCsrfToken() {
+    const meta = document.querySelector('meta[name="csrf-token"]');
+    return meta ? meta.getAttribute('content') : '';
+}
+
+/**
+ * AppFetch - Wrapper fetch() tự động gắn CSRF token
+ */
+const AppFetch = {
+    post: (url, body) => {
+        const token = getCsrfToken();
+        // Nếu body là FormData, append csrf_token vào
+        if (body instanceof FormData) {
+            body.append('csrf_token', token);
+            return fetch(url, { method: 'POST', body: body });
+        }
+        // Nếu body là URLSearchParams, append csrf_token
+        if (body instanceof URLSearchParams) {
+            body.append('csrf_token', token);
+            return fetch(url, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                body: body
+            });
+        }
+        // Nếu body là object thuần, chuyển thành URLSearchParams
+        const params = new URLSearchParams(body);
+        params.append('csrf_token', token);
+        return fetch(url, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+            body: params
+        });
+    }
+};
 
 const AppToast = Swal.mixin({
     toast: true,
@@ -38,6 +76,21 @@ const AppAlert = {
             didOpen: () => {
                 Swal.showLoading();
             }
+        });
+    },
+
+    // Prompt popup (nhập liệu)
+    prompt: (title, inputLabel, inputValue = '', inputValidator = null) => {
+        return Swal.fire({
+            title: title,
+            input: 'text',
+            inputLabel: inputLabel,
+            inputValue: inputValue,
+            showCancelButton: true,
+            confirmButtonText: 'Lưu thay đổi',
+            cancelButtonText: 'Hủy',
+            confirmButtonColor: '#0f766e',
+            inputValidator: inputValidator
         });
     },
     close: () => {

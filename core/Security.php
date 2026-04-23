@@ -60,4 +60,66 @@ class Security {
         }
         return $dateStr;
     }
+
+    // =========================================
+    //  CSRF TOKEN PROTECTION
+    // =========================================
+
+    /**
+     * Tạo CSRF Token và lưu vào session
+     */
+    public static function generateCsrfToken(): string {
+        if (session_status() === PHP_SESSION_NONE) {
+            session_start();
+        }
+        if (empty($_SESSION['csrf_token'])) {
+            $_SESSION['csrf_token'] = bin2hex(random_bytes(32));
+        }
+        return $_SESSION['csrf_token'];
+    }
+
+    /**
+     * Xác thực CSRF Token từ request POST
+     */
+    public static function validateCsrfToken(): void {
+        if (session_status() === PHP_SESSION_NONE) {
+            session_start();
+        }
+        $token = $_POST['csrf_token'] ?? $_SERVER['HTTP_X_CSRF_TOKEN'] ?? '';
+        if (empty($token) || !hash_equals($_SESSION['csrf_token'] ?? '', $token)) {
+            Response::error('Yêu cầu không hợp lệ (CSRF). Vui lòng tải lại trang và thử lại.');
+        }
+    }
+
+    // =========================================
+    //  FORMULA INJECTION PROTECTION
+    // =========================================
+
+    /**
+     * Chống Formula Injection khi ghi dữ liệu vào Google Sheets.
+     * Thêm dấu nháy đơn trước các ký tự nguy hiểm mà Google Sheets hiểu là công thức.
+     */
+    public static function sanitizeForSheet(string $value): string {
+        $value = trim($value);
+        if ($value === '') return $value;
+        $dangerousChars = ['=', '+', '-', '@', "\t", "\r", "\n"];
+        if (in_array(mb_substr($value, 0, 1), $dangerousChars, true)) {
+            $value = "'" . $value;
+        }
+        return $value;
+    }
+
+    /**
+     * Sanitize một mảng dữ liệu trước khi ghi vào Google Sheet
+     * @param array $data Mảng key => value
+     * @param array $keysToSanitize Chỉ sanitize các key cụ thể (user input)
+     */
+    public static function sanitizeArrayForSheet(array $data, array $keysToSanitize): array {
+        foreach ($keysToSanitize as $key) {
+            if (isset($data[$key]) && is_string($data[$key])) {
+                $data[$key] = self::sanitizeForSheet($data[$key]);
+            }
+        }
+        return $data;
+    }
 }

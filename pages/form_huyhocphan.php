@@ -275,7 +275,7 @@ document.getElementById('formHuyHocPhan').addEventListener('submit', function(e)
     progress.style.display = 'block';
     progressText.textContent = 'Đang gửi đề nghị...';
 
-    fetch('api/api_submit_huyhocphan.php', { method: 'POST', body: new FormData(this) })
+    AppFetch.post('api/api_submit_huyhocphan.php', new FormData(this))
     .then(r => r.json())
     .then(data => {
         spinner.style.display = 'none';

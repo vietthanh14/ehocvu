@@ -137,7 +137,7 @@ document.getElementById('requestForm').addEventListener('submit', function(e) {
     progress.style.display = 'block';
     progressText.textContent = 'Đang tải file lên Google Drive...';
 
-    fetch('api/api_submit_baoluu.php', { method: 'POST', body: new FormData(this) })
+    AppFetch.post('api/api_submit_baoluu.php', new FormData(this))
     .then(r => r.json())
     .then(data => {
         spinner.style.display = 'none';

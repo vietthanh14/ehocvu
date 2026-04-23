@@ -9,7 +9,9 @@ class ApiHandler {
      */
     public static function init(): array {
         Security::requirePost();
-        return Security::requireAuth();
+        $student = Security::requireAuth();
+        Security::validateCsrfToken();
+        return $student;
     }
 
     /**

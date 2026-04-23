@@ -35,35 +35,15 @@ $student = $_SESSION['student'];
 <script>
 function editPhone() {
     const currentPhone = document.getElementById('txt-sdt').getAttribute('data-phone') || '';
-    Swal.fire({
-        title: 'Cập nhật Số điện thoại',
-        input: 'text',
-        inputLabel: 'Nhập số điện thoại liên lạc mới (Zalo/Call):',
-        inputValue: currentPhone,
-        showCancelButton: true,
-        confirmButtonText: 'Lưu thay đổi',
-        cancelButtonText: 'Hủy',
-        inputValidator: (value) => {
-            if (!value) {
-                return 'Số điện thoại không được để trống!'
-            }
-            if (!/^[0-9]{9,11}$/.test(value.trim())) {
-                return 'Số điện thoại không hợp lệ (Chỉ chứa số, độ dài 9-11 tự).'
-            }
-        }
+    AppAlert.prompt('Cập nhật Số điện thoại', 'Nhập số điện thoại liên lạc mới (Zalo/Call):', currentPhone, (value) => {
+        if (!value) return 'Số điện thoại không được để trống!';
+        if (!/^[0-9]{9,11}$/.test(value.trim())) return 'Số điện thoại không hợp lệ (Chỉ chứa số, độ dài 9-11 ký tự).';
     }).then((result) => {
         if (result.isConfirmed) {
             const newPhone = result.value.trim();
-            
-            // Hiện loading
             AppAlert.loading('Đang cập nhật... Vui lòng chờ.');
 
-            // Gửi API
-            fetch('api/api_update_profile.php', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-                body: new URLSearchParams({ sdt: newPhone })
-            })
+            AppFetch.post('api/api_update_profile.php', new URLSearchParams({ sdt: newPhone }))
             .then(r => r.json())
             .then(response => {
                 if(response.success) {

@@ -63,8 +63,6 @@ class GoogleSheetService {
         $this->service = new \Google_Service_Sheets($client);
         $this->spreadsheetId = SPREADSHEET_ID;
 
-        $this->spreadsheetId = SPREADSHEET_ID;
-
         $this->cacheManager = new CacheManager();
     }
 

@@ -12,6 +12,9 @@ $loaiYeuCau = trim($_POST['loai_yeu_cau'] ?? '');
 $lyDo = trim($_POST['ly_do'] ?? '');
 $thoiGianBaoLuuDen = trim($_POST['thoi_gian_bao_luu_den'] ?? '');
 
+// Sanitize chống Formula Injection (chỉ các trường user nhập tay)
+$lyDo = Security::sanitizeForSheet($lyDo);
+
 // Chuyển đổi ngày bảo lưu từ yyyy-mm-dd sang dd/mm/yyyy
 if (!empty($thoiGianBaoLuuDen)) {
     $dt = DateTime::createFromFormat('Y-m-d', $thoiGianBaoLuuDen);
