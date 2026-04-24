@@ -5,7 +5,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <?php require_once __DIR__ . '/../core/Security.php'; ?>
     <meta name="csrf-token" content="<?= Security::generateCsrfToken() ?>">
-    <title>Cổng Sinh Viên - Bảng điều khiển</title>
+    <title>ĐH Hạ Long - Bảng điều khiển</title>
+    <link rel="icon" type="image/png" href="assets/logo.png">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     <link href="assets/style.css" rel="stylesheet">
@@ -21,8 +22,8 @@
         <div style="display: flex; align-items: center; gap: 12px;">
             <button class="btn-menu-toggle" id="menuToggle"><i class="fas fa-bars"></i></button>
             <div class="topbar-brand">
-                <div class="icon-box"><i class="fas fa-graduation-cap"></i></div>
-                <span>Cổng Sinh Viên</span>
+                <img src="assets/logo.png" style="width: 36px; height: 36px; border-radius: 8px; object-fit: cover;" alt="Logo">
+                <span>ĐH Hạ Long</span>
             </div>
         </div>
         <div class="topbar-user">

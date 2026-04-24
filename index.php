@@ -17,7 +17,8 @@ $globalNotifications = GoogleSheetService::getInstance()->getGlobalNotifications
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Đăng nhập - Hệ thống Quản lý Sinh viên</title>
+    <title>Cổng Thông Tin Sinh Viên - Đại Học Hạ Long</title>
+    <link rel="icon" type="image/png" href="assets/logo.png">
     <meta name="description" content="Hệ thống đăng ký thủ tục bảo lưu và tiếp tục học dành cho sinh viên">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
@@ -61,9 +62,9 @@ $globalNotifications = GoogleSheetService::getInstance()->getGlobalNotifications
             <!-- Cột Đăng nhập (Phải) -->
             <div class="auth-right">
                 <div class="logo-area">
-                    <div class="logo-icon"><i class="fas fa-graduation-cap"></i></div>
-                    <h1>Cổng Sinh Viên</h1>
-                    <p>Hệ thống Quản lý Thủ tục Học vụ</p>
+                    <img src="assets/logo.png" alt="Logo Đại học Hạ Long" class="school-logo">
+                    <h1>Cổng Thông Tin Sinh Viên</h1>
+                    <p>Trường Đại học Hạ Long</p>
                 </div>
 
                 <form id="login-form">
@@ -89,7 +90,7 @@ $globalNotifications = GoogleSheetService::getInstance()->getGlobalNotifications
                 </form>
 
                 <div class="login-footer">
-                    <p>© 2026 Phòng Đào tạo — Trường Đại học</p>
+                    <p>© 2026 Phòng Đào tạo — Trường Đại học Hạ Long</p>
                 </div>
             </div>
         </div>
