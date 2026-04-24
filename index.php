@@ -1,5 +1,7 @@
 <?php
 require_once __DIR__ . '/config.php';
+require_once __DIR__ . '/core/GoogleSheetService.php';
+
 header("Cache-Control: no-store, no-cache, must-revalidate, max-age=0");
 header("Pragma: no-cache");
 session_start();
@@ -7,6 +9,8 @@ if (isset($_SESSION['student'])) {
     header('Location: dashboard.php');
     exit;
 }
+
+$globalNotifications = GoogleSheetService::getInstance()->getGlobalNotifications();
 ?>
 <!DOCTYPE html>
 <html lang="vi">
@@ -21,7 +25,6 @@ if (isset($_SESSION['student'])) {
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <script src="assets/main.js"></script>
     <link href="assets/login.css" rel="stylesheet">
-
 </head>
 <body>
     <div class="bg-gradient"></div>
@@ -37,39 +40,58 @@ if (isset($_SESSION['student'])) {
         }
     </script>
 
-    <div class="login-wrapper">
-        <div class="logo-area">
-            <div class="logo-icon"><i class="fas fa-graduation-cap"></i></div>
-            <h1>Cổng Sinh Viên</h1>
-            <p>Hệ thống Quản lý Thủ tục Học vụ</p>
-        </div>
-
-        <div class="login-card">
-            <form id="login-form">
-                <div class="form-field">
-                    <label for="masv">Mã sinh viên</label>
-                    <div class="input-wrapper">
-                        <input type="text" id="masv" placeholder="Nhập mã sinh viên của bạn..." required autofocus autocomplete="off">
-                        <i class="fas fa-id-card"></i>
-                    </div>
+    <div class="login-container">
+        <div class="main-auth-card">
+            <!-- Cột Thông báo (Trái) -->
+            <div class="auth-left">
+                <h2><i class="fas fa-bullhorn"></i> Bảng Tin Thông Báo</h2>
+                <div class="notification-list">
+                    <?php if (empty($globalNotifications)): ?>
+                        <div class="empty-noti">Hiện không có thông báo nào.</div>
+                    <?php else: ?>
+                        <?php foreach ($globalNotifications as $noti): ?>
+                            <div class="noti-item">
+                                <?= $noti ?>
+                            </div>
+                        <?php endforeach; ?>
+                    <?php endif; ?>
                 </div>
-                <div class="form-field" style="margin-top: 16px;">
-                    <label for="ngaysinh">Ngày sinh (Mật khẩu)</label>
-                    <div class="input-wrapper">
-                        <input type="text" id="ngaysinh" placeholder="VD: 15/08/2002" required autocomplete="off">
-                        <i class="fas fa-calendar-alt"></i>
-                    </div>
-                </div>
-                <div class="error-msg" id="error-msg"></div>
-                <button type="submit" class="btn-login" id="btn-login">
-                    <span class="spinner" id="spinner"></span>
-                    <i class="fas fa-arrow-right-to-bracket"></i> Tra cứu & Đăng nhập
-                </button>
-            </form>
-        </div>
+            </div>
 
-        <div class="login-footer">
-            <p>© 2026 Phòng Đào tạo — Trường Đại học</p>
+            <!-- Cột Đăng nhập (Phải) -->
+            <div class="auth-right">
+                <div class="logo-area">
+                    <div class="logo-icon"><i class="fas fa-graduation-cap"></i></div>
+                    <h1>Cổng Sinh Viên</h1>
+                    <p>Hệ thống Quản lý Thủ tục Học vụ</p>
+                </div>
+
+                <form id="login-form">
+                    <div class="form-field">
+                        <label for="masv">Mã sinh viên</label>
+                        <div class="input-wrapper">
+                            <input type="text" id="masv" placeholder="Nhập mã sinh viên của bạn..." required autofocus autocomplete="off">
+                            <i class="fas fa-id-card"></i>
+                        </div>
+                    </div>
+                    <div class="form-field" style="margin-top: 16px;">
+                        <label for="ngaysinh">Ngày sinh (Mật khẩu)</label>
+                        <div class="input-wrapper">
+                            <input type="text" id="ngaysinh" placeholder="VD: 15/08/2002" required autocomplete="off">
+                            <i class="fas fa-calendar-alt"></i>
+                        </div>
+                    </div>
+                    <div class="error-msg" id="error-msg"></div>
+                    <button type="submit" class="btn-login" id="btn-login">
+                        <span class="spinner" id="spinner"></span>
+                        <i class="fas fa-arrow-right-to-bracket"></i> Tra cứu & Đăng nhập
+                    </button>
+                </form>
+
+                <div class="login-footer">
+                    <p>© 2026 Phòng Đào tạo — Trường Đại học</p>
+                </div>
+            </div>
         </div>
     </div>
 
