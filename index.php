@@ -85,7 +85,7 @@ $globalNotifications = GoogleSheetService::getInstance()->getGlobalNotifications
                     <div class="error-msg" id="error-msg"></div>
                     <button type="submit" class="btn-login" id="btn-login">
                         <span class="spinner" id="spinner"></span>
-                        <i class="fas fa-arrow-right-to-bracket"></i> Tra cứu & Đăng nhập
+                        <i class="fas fa-arrow-right-to-bracket"></i> Đăng nhập
                     </button>
                 </form>
 

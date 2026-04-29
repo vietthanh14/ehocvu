@@ -83,4 +83,5 @@ body { background: var(--body-bg); color: var(--text-dark); overflow-x: hidden; 
     .sidebar.show { transform: translateX(0); }
     .main { margin-left: 0; padding: 20px 16px; }
     .page-header h2 { font-size: 1.25rem; }
+    .brand-text { display: none; }
 }

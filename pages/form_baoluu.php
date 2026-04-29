@@ -83,18 +83,20 @@ if ($coQDBaoLuu || $isTiepTucHocPending) {
     </div>
 
     <div class="form-actions">
-        <div id="upload-progress" style="display:none; margin-bottom: 12px;">
-            <div style="display:flex; align-items:center; gap:8px; font-size:0.85rem; color: var(--text-mid);">
-                <span class="spinner-custom" style="display:inline-block;"></span>
-                <span id="progress-text">Đang tải file lên...</span>
-            </div>
-        </div>
         <button type="submit" id="btn-submit" class="btn-primary-custom">
             <span class="spinner-custom" id="spinner-submit"></span>
             <i class="fas fa-paper-plane"></i> Gửi hồ sơ đăng ký
         </button>
     </div>
 </form>
+
+<!-- Progress bar -->
+<div id="upload-progress" style="display:none; margin-top:16px;">
+    <div style="height:4px; background:var(--border); border-radius:4px; overflow:hidden;">
+        <div style="height:100%; width:0%; background:linear-gradient(90deg, var(--primary), var(--primary-light)); animation: progressAnim 2s ease-in-out infinite;" id="progressBarHuyHP"></div>
+    </div>
+    <p id="progress-text" style="font-size:0.8rem; color:var(--text-light); margin-top:8px; text-align:center;">Đang xử lý...</p>
+</div>
 
 <style>
 </style>
@@ -135,7 +137,7 @@ document.getElementById('requestForm').addEventListener('submit', function(e) {
     btn.disabled = true;
     spinner.style.display = 'inline-block';
     progress.style.display = 'block';
-    progressText.textContent = 'Đang tải file lên Google Drive...';
+    progressText.textContent = 'Đang xử lý...';
 
     AppFetch.post('api/api_submit_baoluu.php', new FormData(this))
     .then(r => r.json())
@@ -145,7 +147,7 @@ document.getElementById('requestForm').addEventListener('submit', function(e) {
         btn.disabled = false;
         if (data.success) {
             AppAlert.success('Thành công!', 'Hồ sơ đã được gửi đi thành công.')
-            .then(() => { window.location.href = 'dashboard.php?page=home'; });
+            .then(() => { location.reload(); });
         } else {
             AppAlert.error('Không thể nộp đơn', data.message || 'Đã có lỗi xảy ra.');
         }

@@ -48,20 +48,25 @@ $student = $_SESSION['student'];
                 <h2>Đăng kí thủ tục bảo lưu học lại</h2>
                 <span class="breadcrumb-text"><i class="fas fa-home"></i> Trang chủ / Đăng ký</span>
             </div>
-            <div class="section-title">
-                <span class="icon-circle teal"><i class="fas fa-layer-group"></i></span>
-                Lịch sử thủ tục của bạn
-            </div>
-            <div class="card-modern" style="margin-bottom: 30px;">
-                <?php include 'pages/table_lichsu.php'; ?>
+            <div class="tabs-nav">
+                <button class="tab-btn active" onclick="switchTab('baoluu-form', this)">
+                    <i class="fas fa-plus-circle"></i> Tạo đơn mới
+                </button>
+                <button class="tab-btn" onclick="switchTab('baoluu-history', this)">
+                    <i class="fas fa-history"></i> Lịch sử đơn
+                </button>
             </div>
 
-            <div class="section-title">
-                <span class="icon-circle teal"><i class="fas fa-plus-circle"></i></span>
-                Tạo đơn đăng ký mới
+            <div id="baoluu-form" class="tab-pane active">
+                <div class="card-modern" style="padding: 28px; margin-bottom: 24px;">
+                    <?php include 'pages/form_baoluu.php'; ?>
+                </div>
             </div>
-            <div class="card-modern" style="padding: 28px; margin-bottom: 24px;">
-                <?php include 'pages/form_baoluu.php'; ?>
+
+            <div id="baoluu-history" class="tab-pane">
+                <div class="card-modern" style="margin-bottom: 30px;">
+                    <?php include 'pages/table_lichsu.php'; ?>
+                </div>
             </div>
         <?php elseif ($page == 'huyhocphan'): ?>
             <div class="page-header">
@@ -74,5 +79,22 @@ $student = $_SESSION['student'];
 
         <?php endif; ?>
     </main>
+
+    <script>
+    function switchTab(tabId, btn) {
+        // Remove active class from all buttons and panes in the current section
+        const container = btn.closest('.main') || document.body;
+        const nav = btn.closest('.tabs-nav');
+        const panesContainer = nav.parentElement; // Usually they share a parent or container
+
+        // Let's scope it to the whole page to be safe, or closest container
+        document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+        document.querySelectorAll('.tab-pane').forEach(p => p.classList.remove('active'));
+        
+        // Add active class to clicked button and target pane
+        btn.classList.add('active');
+        document.getElementById(tabId).classList.add('active');
+    }
+    </script>
 
 <?php include __DIR__ . '/includes/footer.php'; ?>

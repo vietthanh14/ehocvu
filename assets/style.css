@@ -133,27 +133,19 @@ body {
 
 /* Notice / Alert card */
 .notice-card {
-    background: linear-gradient(135deg, #fffbeb 0%, #fef3c7 100%);
-    border: 1px solid #fde68a;
+    background: #f0fdfa;
+    border: 1px solid #ccfbf1;
     border-radius: var(--radius);
     padding: 20px 24px;
     margin-bottom: 24px;
     position: relative;
     overflow: hidden;
 }
-.notice-card::before {
-    content: '';
-    position: absolute;
-    left: 0;
-    top: 0;
-    bottom: 0;
-    width: 4px;
-    background: var(--accent);
-}
+
 .notice-card h6 {
     font-size: 0.9rem;
     font-weight: 700;
-    color: #92400e;
+    color: var(--primary-dark);
     margin-bottom: 10px;
 }
 .notice-card ul {
@@ -162,7 +154,7 @@ body {
 }
 .notice-card li {
     font-size: 0.85rem;
-    color: #78350f;
+    color: var(--text-mid);
     margin-bottom: 4px;
     line-height: 1.5;
 }
@@ -196,9 +188,21 @@ body {
 }
 .form-field select:focus,
 .form-field input[type="date"]:focus,
+.form-field input[type="number"]:focus,
+.form-field input[type="text"]:focus,
 .form-field textarea:focus {
     border-color: var(--primary-light);
-    box-shadow: 0 0 0 3px rgba(20, 184, 166, 0.1);
+    box-shadow: 0 0 0 4px rgba(20, 184, 166, 0.25);
+}
+
+/* Remove number input spinners */
+input[type="number"]::-webkit-inner-spin-button, 
+input[type="number"]::-webkit-outer-spin-button { 
+    -webkit-appearance: none; 
+    margin: 0; 
+}
+input[type="number"] {
+    -moz-appearance: textfield;
 }
 .form-field textarea {
     resize: vertical;
@@ -256,7 +260,14 @@ body {
 }
 
 /* Table */
-.table-responsive { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+.table-responsive { 
+    overflow-x: auto; 
+    -webkit-overflow-scrolling: touch; 
+    border-radius: 12px; 
+    border: 1px solid var(--border); 
+    box-shadow: var(--shadow-sm); 
+    background: #fff;
+}
 
 .table-custom {
     width: 100%;
@@ -265,14 +276,12 @@ body {
     white-space: nowrap;
 }
 .table-custom thead th {
-    background: #f8fafc;
-    color: var(--text-light);
-    border-bottom: 1px solid var(--border);
+    background: var(--primary-dark);
+    color: #ffffff;
+    border-bottom: none;
     font-weight: 600;
-    text-transform: uppercase;
-    font-size: 0.7rem;
-    letter-spacing: 0.05em;
-    padding: 12px 16px;
+    font-size: 0.85rem;
+    padding: 14px 16px;
 }
 .table-custom tbody td {
     padding: 12px 16px;
@@ -391,4 +400,339 @@ body {
 /* Mobile */
 @media (max-width: 768px) {
     .profile-grid { grid-template-columns: 1fr; }
+}
+
+/* === Tabs UI === */
+.tabs-nav {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 24px;
+    border-bottom: 1px solid var(--border);
+    overflow-x: auto;
+    overflow-y: hidden;
+    -webkit-overflow-scrolling: touch;
+    -ms-overflow-style: none; /* IE and Edge */
+    scrollbar-width: none; /* Firefox */
+}
+.tabs-nav::-webkit-scrollbar {
+    display: none; /* Chrome, Safari and Opera */
+}
+.tab-btn {
+    padding: 12px 20px;
+    border: none;
+    background: transparent;
+    font-family: 'Inter', sans-serif;
+    font-size: 0.9rem;
+    font-weight: 600;
+    color: var(--text-light);
+    border-bottom: 2px solid transparent;
+    cursor: pointer;
+    transition: var(--transition);
+    margin-bottom: -1px;
+    white-space: nowrap;
+}
+.tab-btn:hover {
+    color: var(--text-mid);
+}
+.tab-btn.active {
+    color: var(--primary);
+    border-bottom-color: var(--primary);
+}
+.tab-pane {
+    display: none;
+    animation: fadeIn 0.3s ease;
+}
+.tab-pane.active {
+    display: block;
+}
+
+/* === Autocomplete Dropdown === */
+.autocomplete-dropdown {
+    position: absolute;
+    width: 100%;
+    max-height: 250px;
+    overflow-y: auto;
+    background: #fff;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1);
+    margin-top: 4px;
+    z-index: 100;
+}
+.autocomplete-dropdown::-webkit-scrollbar {
+    width: 6px;
+}
+.autocomplete-dropdown::-webkit-scrollbar-thumb {
+    background: #cbd5e1;
+    border-radius: 4px;
+}
+.autocomplete-list {
+    list-style: none;
+    padding: 6px;
+    margin: 0;
+}
+.autocomplete-list li {
+    padding: 10px 14px;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: var(--transition);
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+.autocomplete-list li:hover {
+    background: #f8fafc;
+}
+.autocomplete-list li .course-id {
+    font-size: 0.8rem;
+    font-weight: 700;
+    color: var(--primary-dark);
+    background: rgba(20, 184, 166, 0.1);
+    padding: 3px 8px;
+    border-radius: 6px;
+    white-space: nowrap;
+}
+.autocomplete-list li .course-name {
+    font-size: 0.9rem;
+    color: var(--text-dark);
+    font-weight: 500;
+}
+.autocomplete-list li.empty-msg {
+    color: var(--text-light);
+    cursor: default;
+    justify-content: center;
+    font-style: italic;
+}
+.autocomplete-list li.empty-msg:hover {
+    background: none;
+}
+
+/* === Tags Input === */
+.course-tags-container {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    padding: 10px;
+    border: 1.5px solid var(--border);
+    border-radius: 10px;
+    background: #fff;
+    min-height: 50px;
+}
+.course-tag {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 12px;
+    background: rgba(20, 184, 166, 0.1);
+    border-radius: 8px;
+    border: 1px solid rgba(20, 184, 166, 0.2);
+    font-size: 0.85rem;
+    font-weight: 500;
+    color: var(--primary-dark);
+}
+.course-tag button {
+    background: none;
+    border: none;
+    color: var(--primary);
+    cursor: pointer;
+    font-size: 1rem;
+    line-height: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    width: 18px;
+    height: 18px;
+    transition: var(--transition);
+}
+.course-tag button:hover {
+    background: rgba(239, 68, 68, 0.1);
+    color: var(--danger);
+}
+.course-tag-empty {
+    color: var(--text-light);
+    font-size: 0.85rem;
+    padding: 6px;
+}
+
+/* === History Table & Card Views (Shared) === */
+
+/* Desktop: show table, hide cards */
+.history-table-view { display: block; }
+.history-card-view { display: none; }
+
+/* Mobile: hide table, show cards */
+@media (max-width: 768px) {
+    .history-table-view { display: none; }
+    .history-card-view { display: block; }
+}
+
+/* === Card styles === */
+.history-empty {
+    text-align: center;
+    padding: 40px 20px;
+    color: var(--text-light);
+}
+.history-empty i {
+    font-size: 2rem;
+    opacity: 0.3;
+    display: block;
+    margin-bottom: 10px;
+}
+.history-empty p {
+    font-size: 0.9rem;
+}
+
+.history-card {
+    background: var(--card-bg, #fff);
+    border: 1px solid var(--border, #e2e8f0);
+    border-radius: 12px;
+    margin-bottom: 12px;
+    overflow: hidden;
+    transition: var(--transition);
+}
+.history-card:hover {
+    box-shadow: var(--shadow-md, 0 4px 12px rgba(0,0,0,0.06));
+}
+
+.history-card-header {
+    padding: 14px 16px;
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 10px;
+    border-bottom: 1px solid #f1f5f9;
+}
+.history-card-type {
+    display: block;
+    font-size: 0.9rem;
+    font-weight: 700;
+    color: var(--primary, #0f766e);
+    margin-bottom: 4px;
+}
+.history-card-time {
+    font-size: 0.75rem;
+    color: var(--text-light, #94a3b8);
+}
+.history-card-time i { margin-right: 3px; }
+
+.history-card-body {
+    padding: 10px 16px;
+}
+.history-card-row {
+    display: flex;
+    align-items: flex-start;
+    padding: 6px 0;
+    gap: 8px;
+}
+.hc-label {
+    flex-shrink: 0;
+    width: 70px;
+    font-size: 0.72rem;
+    font-weight: 600;
+    color: var(--text-light, #94a3b8);
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+    padding-top: 1px;
+}
+.hc-value {
+    font-size: 0.85rem;
+    color: var(--text-dark, #1e293b);
+    word-break: break-word;
+}
+
+.history-card-footer {
+    padding: 10px 16px 14px;
+    display: flex;
+    gap: 8px;
+    border-top: 1px solid #f1f5f9;
+}
+.hc-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 14px;
+    border-radius: 8px;
+    font-size: 0.78rem;
+    font-weight: 600;
+    text-decoration: none;
+    background: rgba(20, 184, 166, 0.08);
+    color: var(--primary, #0f766e);
+    transition: var(--transition);
+}
+.hc-link:hover {
+    background: rgba(20, 184, 166, 0.15);
+}
+.hc-link.info {
+    background: rgba(14, 165, 233, 0.08);
+    color: #0284c7;
+}
+.hc-link.info:hover {
+    background: rgba(14, 165, 233, 0.15);
+}
+
+/* === SweetAlert2 Custom Styling === */
+div:where(.swal2-container) div:where(.swal2-popup) {
+    border-radius: var(--radius) !important;
+    padding: 24px !important;
+    font-family: 'Inter', sans-serif !important;
+    box-shadow: var(--shadow-lg) !important;
+    border: 1px solid var(--border) !important;
+}
+div:where(.swal2-container) h2:where(.swal2-title) {
+    font-size: 1.4rem !important;
+    color: var(--text-dark) !important;
+    font-weight: 700 !important;
+}
+div:where(.swal2-container) div:where(.swal2-html-container) {
+    font-size: 0.95rem !important;
+    color: var(--text-mid) !important;
+    line-height: 1.6 !important;
+}
+div:where(.swal2-container) button:where(.swal2-styled).swal2-confirm {
+    background: var(--primary) !important;
+    border-radius: 8px !important;
+    font-weight: 600 !important;
+    padding: 12px 32px !important;
+    box-shadow: none !important;
+    transition: var(--transition) !important;
+}
+div:where(.swal2-container) button:where(.swal2-styled).swal2-confirm:hover {
+    background: var(--primary-dark) !important;
+    transform: translateY(-1px) !important;
+}
+div:where(.swal2-container) button:where(.swal2-styled).swal2-cancel {
+    background: #f1f5f9 !important;
+    color: var(--text-dark) !important;
+    border-radius: 8px !important;
+    font-weight: 600 !important;
+    padding: 12px 28px !important;
+    box-shadow: none !important;
+    transition: var(--transition) !important;
+}
+div:where(.swal2-container) button:where(.swal2-styled).swal2-cancel:hover {
+    background: #e2e8f0 !important;
+}
+
+/* Icons styling sync */
+div:where(.swal2-icon).swal2-success {
+    border-color: var(--success) !important;
+    color: var(--success) !important;
+}
+div:where(.swal2-icon).swal2-success [class^=swal2-success-line] {
+    background-color: var(--success) !important;
+}
+div:where(.swal2-icon).swal2-success .swal2-success-ring {
+    border-color: rgba(16, 185, 129, 0.2) !important;
+}
+div:where(.swal2-icon).swal2-error {
+    border-color: var(--danger) !important;
+    color: var(--danger) !important;
+}
+div:where(.swal2-icon).swal2-error [class^=swal2-x-mark-line] {
+    background-color: var(--danger) !important;
+}
+div:where(.swal2-icon).swal2-info {
+    border-color: var(--info) !important;
+    color: var(--info) !important;
 }
