@@ -48,16 +48,20 @@ $student = $_SESSION['student'];
                 <h2>Đăng kí thủ tục bảo lưu học lại</h2>
                 <span class="breadcrumb-text"><i class="fas fa-home"></i> Trang chủ / Đăng ký</span>
             </div>
-            <div class="card-modern" style="padding: 28px; margin-bottom: 24px;">
-                <?php include 'pages/form_baoluu.php'; ?>
-            </div>
-
             <div class="section-title">
                 <span class="icon-circle teal"><i class="fas fa-layer-group"></i></span>
                 Lịch sử thủ tục của bạn
             </div>
-            <div class="card-modern">
+            <div class="card-modern" style="margin-bottom: 30px;">
                 <?php include 'pages/table_lichsu.php'; ?>
+            </div>
+
+            <div class="section-title">
+                <span class="icon-circle teal"><i class="fas fa-plus-circle"></i></span>
+                Tạo đơn đăng ký mới
+            </div>
+            <div class="card-modern" style="padding: 28px; margin-bottom: 24px;">
+                <?php include 'pages/form_baoluu.php'; ?>
             </div>
         <?php elseif ($page == 'huyhocphan'): ?>
             <div class="page-header">

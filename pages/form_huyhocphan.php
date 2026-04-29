@@ -37,6 +37,169 @@ if ($isDotMo && !empty($config['TieuDeDot'])) {
 // (Phần cảnh báo lịch sử đã được chuyển xuống bảng Lịch sử bên dưới)
 ?>
 
+<?php if (!empty($lichSuDon)): ?>
+<!-- === LỊCH SỬ ĐƠN ĐÃ NỘP === -->
+<?php
+$lichSuRendered = [];
+foreach ($lichSuDon as $idx => $don) {
+    $don['_rbg'] = $idx % 2 === 0 ? '#fff' : '#f8fafc';
+    $lichSuRendered[] = $don;
+}
+?>
+<div style="margin-bottom: 30px;">
+    <h5 style="color: var(--text-dark); margin-bottom: 14px; display:flex; align-items:center; gap:8px;">
+        <i class="fas fa-history" style="color: var(--primary);"></i> Lịch sử đơn hủy học phần
+    </h5>
+
+    <!-- Desktop: Table -->
+    <div class="hhp-history-table">
+        <div style="overflow-x:auto; border-radius:12px; border:1px solid var(--border); box-shadow:var(--shadow-sm);">
+            <table style="width:100%; border-collapse:collapse; font-size:0.85rem;">
+                <thead>
+                    <tr style="background:linear-gradient(135deg, var(--primary), var(--primary-dark)); color:#fff;">
+                        <th style="padding:12px 14px; text-align:left; white-space:nowrap;">Thời gian</th>
+                        <th style="padding:12px 14px; text-align:left; white-space:nowrap;">Đợt</th>
+                        <th style="padding:12px 14px; text-align:left;">Môn hủy</th>
+                        <th style="padding:12px 14px; text-align:left;">Lý do</th>
+                        <th style="padding:12px 14px; text-align:center;">Minh chứng</th>
+                        <th style="padding:12px 14px; text-align:center; white-space:nowrap;">Trạng thái</th>
+                        <th style="padding:12px 14px; text-align:left;">Phản hồi</th>
+                    </tr>
+                </thead>
+                <tbody>
+                <?php foreach ($lichSuRendered as $d): ?>
+                    <tr style="background:<?= $d['_rbg'] ?>; border-bottom:1px solid #f1f5f9;">
+                        <td style="padding:11px 14px; white-space:nowrap; color:var(--text-mid);"><?= htmlspecialchars($d['timestamp']) ?></td>
+                        <td style="padding:11px 14px; white-space:nowrap; font-weight:600; color:var(--text-dark);"><?= htmlspecialchars($d['tieu_de_dot']) ?></td>
+                        <td style="padding:11px 14px; color:var(--text-mid); white-space:pre-line; max-width:280px;"><?= htmlspecialchars($d['danh_sach_mon']) ?></td>
+                        <td style="padding:11px 14px; color:var(--text-mid); max-width:200px;"><?= htmlspecialchars($d['ly_do']) ?></td>
+                        <td style="padding:11px 14px; text-align:center;">
+                            <?php if (!empty($d['link_minh_chung'])): ?>
+                                <a href="<?= htmlspecialchars($d['link_minh_chung']) ?>" target="_blank" style="color:var(--primary); text-decoration:none;" title="Xem minh chứng"><i class="fas fa-paperclip"></i></a>
+                            <?php else: ?>
+                                <span style="color:#cbd5e1;">—</span>
+                            <?php endif; ?>
+                        </td>
+                        <td style="padding:11px 14px; text-align:center;">
+                            <?= UIHelper::renderStatusBadge($d['trang_thai']) ?>
+                        </td>
+                        <td style="padding:11px 14px; color:var(--text-mid); font-style:<?= empty($d['ghi_chu_admin']) ? 'italic' : 'normal' ?>;">
+                            <?= !empty($d['ghi_chu_admin']) ? htmlspecialchars($d['ghi_chu_admin']) : '<span style="opacity:0.4;">—</span>' ?>
+                        </td>
+                    </tr>
+                <?php endforeach; ?>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- Mobile: Cards -->
+    <div class="hhp-history-cards">
+        <?php foreach ($lichSuRendered as $d): ?>
+        <div class="hhp-card">
+            <div class="hhp-card-header">
+                <span class="hhp-card-dot"><?= htmlspecialchars($d['tieu_de_dot']) ?></span>
+                <?= UIHelper::renderStatusBadge($d['trang_thai']) ?>
+            </div>
+            <div class="hhp-card-row">
+                <span class="hhp-card-label"><i class="fas fa-clock"></i> Thời gian</span>
+                <span class="hhp-card-value"><?= htmlspecialchars($d['timestamp']) ?></span>
+            </div>
+            <div class="hhp-card-row">
+                <span class="hhp-card-label"><i class="fas fa-book"></i> Môn hủy</span>
+                <span class="hhp-card-value" style="white-space:pre-line;"><?= htmlspecialchars($d['danh_sach_mon']) ?></span>
+            </div>
+            <div class="hhp-card-row">
+                <span class="hhp-card-label"><i class="fas fa-info-circle"></i> Lý do</span>
+                <span class="hhp-card-value"><?= htmlspecialchars($d['ly_do']) ?></span>
+            </div>
+            <?php if (!empty($d['link_minh_chung'])): ?>
+            <div class="hhp-card-row">
+                <span class="hhp-card-label"><i class="fas fa-paperclip"></i> Minh chứng</span>
+                <span class="hhp-card-value"><a href="<?= htmlspecialchars($d['link_minh_chung']) ?>" target="_blank" style="color:var(--primary); text-decoration:none;"><i class="fas fa-external-link-alt"></i> Xem file</a></span>
+            </div>
+            <?php endif; ?>
+            <?php if (!empty($d['ghi_chu_admin'])): ?>
+            <div class="hhp-card-row">
+                <span class="hhp-card-label"><i class="fas fa-comment-dots"></i> Phản hồi</span>
+                <span class="hhp-card-value"><?= htmlspecialchars($d['ghi_chu_admin']) ?></span>
+            </div>
+            <?php endif; ?>
+        </div>
+        <?php endforeach; ?>
+    </div>
+</div>
+
+<style>
+.hhp-history-table { display: block; }
+.hhp-history-cards { display: none; }
+@media (max-width: 768px) {
+    .hhp-history-table { display: none !important; }
+    .hhp-history-cards { display: flex; flex-direction: column; gap: 12px; }
+}
+.hhp-card {
+    background: #fff;
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 16px;
+    box-shadow: var(--shadow-sm);
+}
+.hhp-card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 12px;
+    padding-bottom: 10px;
+    border-bottom: 1px solid #f1f5f9;
+}
+.hhp-card-dot {
+    font-weight: 700;
+    font-size: 0.88rem;
+    color: var(--text-dark);
+}
+.hhp-card-badge {
+    display: inline-block;
+    padding: 3px 10px;
+    border-radius: 20px;
+    font-size: 0.73rem;
+    font-weight: 600;
+    border: 1px solid;
+    white-space: nowrap;
+}
+.hhp-card-row {
+    display: flex;
+    gap: 8px;
+    padding: 5px 0;
+    font-size: 0.83rem;
+    line-height: 1.5;
+}
+.hhp-card-label {
+    min-width: 85px;
+    color: var(--text-light);
+    font-weight: 500;
+    flex-shrink: 0;
+}
+.hhp-card-label i {
+    width: 16px;
+    text-align: center;
+    margin-right: 4px;
+    color: var(--primary);
+    font-size: 0.75rem;
+}
+.hhp-card-value {
+    color: var(--text-mid);
+    word-break: break-word;
+}
+</style>
+<?php endif; ?>
+
+
+
+<div class="section-title">
+    <span class="icon-circle teal"><i class="fas fa-plus-circle"></i></span>
+    Tạo đơn đề nghị mới
+</div>
+
 <?php if (!$isDotMo): ?>
 <!-- === MÀN HÌNH KHÓA: Đợt đã đóng === -->
 <div style="text-align: center; padding: 60px 20px;">
@@ -268,161 +431,5 @@ document.getElementById('formHuyHocPhan').addEventListener('submit', function(e)
     });
 });
 </script>
-<?php endif; ?>
-
-<?php if (!empty($lichSuDon)): ?>
-<!-- === LỊCH SỬ ĐƠN ĐÃ NỘP === -->
-<?php
-$lichSuRendered = [];
-foreach ($lichSuDon as $idx => $don) {
-    $don['_rbg'] = $idx % 2 === 0 ? '#fff' : '#f8fafc';
-    $lichSuRendered[] = $don;
-}
-?>
-<div style="margin-top: 30px;">
-    <h5 style="color: var(--text-dark); margin-bottom: 14px; display:flex; align-items:center; gap:8px;">
-        <i class="fas fa-history" style="color: var(--primary);"></i> Lịch sử đơn hủy học phần
-    </h5>
-
-    <!-- Desktop: Table -->
-    <div class="hhp-history-table">
-        <div style="overflow-x:auto; border-radius:12px; border:1px solid var(--border); box-shadow:var(--shadow-sm);">
-            <table style="width:100%; border-collapse:collapse; font-size:0.85rem;">
-                <thead>
-                    <tr style="background:linear-gradient(135deg, var(--primary), var(--primary-dark)); color:#fff;">
-                        <th style="padding:12px 14px; text-align:left; white-space:nowrap;">Thời gian</th>
-                        <th style="padding:12px 14px; text-align:left; white-space:nowrap;">Đợt</th>
-                        <th style="padding:12px 14px; text-align:left;">Môn hủy</th>
-                        <th style="padding:12px 14px; text-align:left;">Lý do</th>
-                        <th style="padding:12px 14px; text-align:center;">Minh chứng</th>
-                        <th style="padding:12px 14px; text-align:center; white-space:nowrap;">Trạng thái</th>
-                        <th style="padding:12px 14px; text-align:left;">Phản hồi</th>
-                    </tr>
-                </thead>
-                <tbody>
-                <?php foreach ($lichSuRendered as $d): ?>
-                    <tr style="background:<?= $d['_rbg'] ?>; border-bottom:1px solid #f1f5f9;">
-                        <td style="padding:11px 14px; white-space:nowrap; color:var(--text-mid);"><?= htmlspecialchars($d['timestamp']) ?></td>
-                        <td style="padding:11px 14px; white-space:nowrap; font-weight:600; color:var(--text-dark);"><?= htmlspecialchars($d['tieu_de_dot']) ?></td>
-                        <td style="padding:11px 14px; color:var(--text-mid); white-space:pre-line; max-width:280px;"><?= htmlspecialchars($d['danh_sach_mon']) ?></td>
-                        <td style="padding:11px 14px; color:var(--text-mid); max-width:200px;"><?= htmlspecialchars($d['ly_do']) ?></td>
-                        <td style="padding:11px 14px; text-align:center;">
-                            <?php if (!empty($d['link_minh_chung'])): ?>
-                                <a href="<?= htmlspecialchars($d['link_minh_chung']) ?>" target="_blank" style="color:var(--primary); text-decoration:none;" title="Xem minh chứng"><i class="fas fa-paperclip"></i></a>
-                            <?php else: ?>
-                                <span style="color:#cbd5e1;">—</span>
-                            <?php endif; ?>
-                        </td>
-                        <td style="padding:11px 14px; text-align:center;">
-                            <?= UIHelper::renderStatusBadge($d['trang_thai']) ?>
-                        </td>
-                        <td style="padding:11px 14px; color:var(--text-mid); font-style:<?= empty($d['ghi_chu_admin']) ? 'italic' : 'normal' ?>;">
-                            <?= !empty($d['ghi_chu_admin']) ? htmlspecialchars($d['ghi_chu_admin']) : '<span style="opacity:0.4;">—</span>' ?>
-                        </td>
-                    </tr>
-                <?php endforeach; ?>
-                </tbody>
-            </table>
-        </div>
-    </div>
-
-    <!-- Mobile: Cards -->
-    <div class="hhp-history-cards">
-        <?php foreach ($lichSuRendered as $d): ?>
-        <div class="hhp-card">
-            <div class="hhp-card-header">
-                <span class="hhp-card-dot"><?= htmlspecialchars($d['tieu_de_dot']) ?></span>
-                <?= UIHelper::renderStatusBadge($d['trang_thai']) ?>
-            </div>
-            <div class="hhp-card-row">
-                <span class="hhp-card-label"><i class="fas fa-clock"></i> Thời gian</span>
-                <span class="hhp-card-value"><?= htmlspecialchars($d['timestamp']) ?></span>
-            </div>
-            <div class="hhp-card-row">
-                <span class="hhp-card-label"><i class="fas fa-book"></i> Môn hủy</span>
-                <span class="hhp-card-value" style="white-space:pre-line;"><?= htmlspecialchars($d['danh_sach_mon']) ?></span>
-            </div>
-            <div class="hhp-card-row">
-                <span class="hhp-card-label"><i class="fas fa-info-circle"></i> Lý do</span>
-                <span class="hhp-card-value"><?= htmlspecialchars($d['ly_do']) ?></span>
-            </div>
-            <?php if (!empty($d['link_minh_chung'])): ?>
-            <div class="hhp-card-row">
-                <span class="hhp-card-label"><i class="fas fa-paperclip"></i> Minh chứng</span>
-                <span class="hhp-card-value"><a href="<?= htmlspecialchars($d['link_minh_chung']) ?>" target="_blank" style="color:var(--primary); text-decoration:none;"><i class="fas fa-external-link-alt"></i> Xem file</a></span>
-            </div>
-            <?php endif; ?>
-            <?php if (!empty($d['ghi_chu_admin'])): ?>
-            <div class="hhp-card-row">
-                <span class="hhp-card-label"><i class="fas fa-comment-dots"></i> Phản hồi</span>
-                <span class="hhp-card-value"><?= htmlspecialchars($d['ghi_chu_admin']) ?></span>
-            </div>
-            <?php endif; ?>
-        </div>
-        <?php endforeach; ?>
-    </div>
-</div>
-
-<style>
-.hhp-history-table { display: block; }
-.hhp-history-cards { display: none; }
-@media (max-width: 768px) {
-    .hhp-history-table { display: none !important; }
-    .hhp-history-cards { display: flex; flex-direction: column; gap: 12px; }
-}
-.hhp-card {
-    background: #fff;
-    border: 1px solid var(--border);
-    border-radius: 14px;
-    padding: 16px;
-    box-shadow: var(--shadow-sm);
-}
-.hhp-card-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 12px;
-    padding-bottom: 10px;
-    border-bottom: 1px solid #f1f5f9;
-}
-.hhp-card-dot {
-    font-weight: 700;
-    font-size: 0.88rem;
-    color: var(--text-dark);
-}
-.hhp-card-badge {
-    display: inline-block;
-    padding: 3px 10px;
-    border-radius: 20px;
-    font-size: 0.73rem;
-    font-weight: 600;
-    border: 1px solid;
-    white-space: nowrap;
-}
-.hhp-card-row {
-    display: flex;
-    gap: 8px;
-    padding: 5px 0;
-    font-size: 0.83rem;
-    line-height: 1.5;
-}
-.hhp-card-label {
-    min-width: 85px;
-    color: var(--text-light);
-    font-weight: 500;
-    flex-shrink: 0;
-}
-.hhp-card-label i {
-    width: 16px;
-    text-align: center;
-    margin-right: 4px;
-    color: var(--primary);
-    font-size: 0.75rem;
-}
-.hhp-card-value {
-    color: var(--text-mid);
-    word-break: break-word;
-}
-</style>
 <?php endif; ?>
 
