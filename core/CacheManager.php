@@ -8,8 +8,11 @@ class CacheManager {
             mkdir($this->cacheDir, 0777, true);
         }
         
-        // Cơ chế dọn rác ngẫu nhiên (10%)
-        if (mt_rand(1, 10) === 1) {
+        // Throttled Cleanup: Tự động dọn rác tối đa 1 lần / 24 giờ
+        // Dùng file lock thay vì mt_rand để tránh bottleneck
+        $lockFile = $this->cacheDir . '/.last_cleanup';
+        if (!file_exists($lockFile) || (time() - filemtime($lockFile)) > 86400) {
+            @touch($lockFile);
             $this->cleanup();
         }
     }
@@ -51,22 +54,6 @@ class CacheManager {
     }
 
     /**
-     * Xóa toàn bộ cache liên quan tới request (sau khi submit).
-     */
-    public function invalidateRequestsCache(): void {
-        // Xóa cache bảo lưu
-        $files = glob($this->cacheDir . '/requests_*.json');
-        foreach ($files as $f) {
-            @unlink($f);
-        }
-        // Xóa cache hủy học phần
-        $hhpFile = $this->cacheDir . '/hhp_requests_all.json';
-        if (file_exists($hhpFile)) {
-            @unlink($hhpFile);
-        }
-    }
-    
-    /**
      * Xóa tất cả các file cache (Dùng cho clearcache.php)
      */
     public function clearAll(): int {
@@ -82,7 +69,7 @@ class CacheManager {
     /**
      * Dọn dẹp các file cache quá cũ (hơn 24 giờ) để tránh đầy ổ cứng.
      */
-    private function cleanup(): void {
+    public function cleanup(): void {
         $files = glob($this->cacheDir . '/*.json');
         $now = time();
         foreach ($files as $f) {

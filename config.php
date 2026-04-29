@@ -34,3 +34,13 @@ define('SHEET_HUY_HOC_PHAN_REQUESTS', 'HuyHocPhan_Requests');
 // URL của Google Apps Script Web App (dùng để upload file đơn đăng ký)
 // Hướng dẫn: Xem file docs/upload_appscript.js → Deploy trên script.google.com → Dán URL vào đây
 define('UPLOAD_SCRIPT_URL', 'https://script.google.com/macros/s/AKfycbzJD9-mnr_KLfq8XNiunIH6l9WIpebM8eJ-Z-TaA1GG4ySsU_vem6QAier_klhL5ZY/exec');
+
+// === Cấu hình Cache TTL (giây) ===
+// Tập trung tất cả TTL tại đây để tránh trùng lặp giữa các Service
+define('CACHE_TTL_STUDENT_LIST',     600);   // 10 phút
+define('CACHE_TTL_EXPELLED_LIST',    900);   // 15 phút
+define('CACHE_TTL_NOTIFICATIONS',    120);   // 2 phút
+define('CACHE_TTL_REQUESTS',         120);   // 2 phút
+define('CACHE_TTL_CONFIG_HHP',       300);   // 5 phút
+define('CACHE_TTL_COURSES_CATALOG',  86400); // 24 giờ
+define('CACHE_TTL_HHP_REQUESTS',     180);   // 3 phút

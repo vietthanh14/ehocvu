@@ -3,33 +3,25 @@ require_once __DIR__ . '/GoogleSheetClient.php';
 
 class StudentRepository {
     private GoogleSheetClient $client;
-    
-    // Config values from old service
-    private const CACHE_TTL = [
-        'student_list' => 600,
-        'expelled_list' => 900,
-        'notifications' => 120,
-        'requests' => 120
-    ];
 
     public function __construct() {
         $this->client = GoogleSheetClient::getInstance();
     }
 
     private function fetchStudentListSheet(): ?array {
-        return $this->client->fetchSheetDataCached('student_list', SHEET_STUDENT_LIST, self::CACHE_TTL['student_list']);
+        return $this->client->fetchSheetDataCached('student_list', SHEET_STUDENT_LIST, CACHE_TTL_STUDENT_LIST);
     }
 
     private function fetchExpelledListSheet(): ?array {
-        return $this->client->fetchSheetDataCached('expelled_list', SHEET_EXPELLED_LIST, self::CACHE_TTL['expelled_list']);
+        return $this->client->fetchSheetDataCached('expelled_list', SHEET_EXPELLED_LIST, CACHE_TTL_EXPELLED_LIST);
     }
 
     private function fetchNotificationSheet(): ?array {
-        return $this->client->fetchSheetDataCached('notifications', SHEET_NOTIFICATION, self::CACHE_TTL['notifications'], true);
+        return $this->client->fetchSheetDataCached('notifications', SHEET_NOTIFICATION, CACHE_TTL_NOTIFICATIONS, true);
     }
     
     private function fetchRequestListSheet(): ?array {
-        return $this->client->fetchSheetDataCached('requests_all', SHEET_REQUEST_LIST, self::CACHE_TTL['requests']);
+        return $this->client->fetchSheetDataCached('requests_all', SHEET_REQUEST_LIST, CACHE_TTL_REQUESTS);
     }
 
     public function getStudentInfo(string $maSv): ?array {
@@ -201,12 +193,8 @@ class StudentRepository {
         try {
             $this->client->updateRowInSheet($updateRange, [$newPhone]);
             
-            // In-place cache update
-            while (count($values[$targetRow - 1]) <= $sdtIndex) {
-                $values[$targetRow - 1][] = '';
-            }
-            $values[$targetRow - 1][$sdtIndex] = $newPhone;
-            $this->client->getCacheManager()->set('student_list', $values);
+            // Clear cache để fetch lại data mới nhất từ sheet
+            $this->client->getCacheManager()->clear('student_list');
             
             // --- SYNC PHONE TO SHEET 3 ---
             try {
@@ -250,7 +238,7 @@ class StudentRepository {
                         $this->client->getService()->spreadsheets_values->batchUpdate($this->client->getSpreadsheetId(), $batchBody);
                         
                         if ($hasChange) {
-                            $this->client->getCacheManager()->set('requests_all', $reqValues);
+                            $this->client->getCacheManager()->clear('requests_all');
                         }
                     }
                 }

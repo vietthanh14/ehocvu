@@ -3,10 +3,6 @@ require_once __DIR__ . '/GoogleSheetClient.php';
 
 class NotificationService {
     private GoogleSheetClient $client;
-    
-    private const CACHE_TTL = [
-        'notifications' => 120
-    ];
 
     public function __construct() {
         $this->client = GoogleSheetClient::getInstance();
@@ -15,7 +11,7 @@ class NotificationService {
     private function fetchNotificationSheet(): ?array {
         if (!defined('SHEET_NOTIFICATION')) return null;
         try {
-            return $this->client->fetchSheetDataCached('notifications', SHEET_NOTIFICATION, self::CACHE_TTL['notifications'], true);
+            return $this->client->fetchSheetDataCached('notifications', SHEET_NOTIFICATION, CACHE_TTL_NOTIFICATIONS, true);
         } catch (Exception $e) {
             return null;
         }

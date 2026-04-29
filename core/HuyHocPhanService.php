@@ -3,12 +3,6 @@ require_once __DIR__ . '/GoogleSheetClient.php';
 
 class HuyHocPhanService {
     private GoogleSheetClient $client;
-    
-    private const CACHE_TTL = [
-        'config_huyhocphan' => 300,
-        'courses_catalog'   => 86400,
-        'hhp_requests'      => 180,
-    ];
 
     public function __construct() {
         $this->client = GoogleSheetClient::getInstance();
@@ -16,7 +10,7 @@ class HuyHocPhanService {
 
     public function getHuyHocPhanConfig(): array {
         $cacheKey = 'config_huyhocphan';
-        $cached = $this->client->getCacheManager()->get($cacheKey, self::CACHE_TTL['config_huyhocphan']);
+        $cached = $this->client->getCacheManager()->get($cacheKey, CACHE_TTL_CONFIG_HHP);
         if ($cached !== null) {
             return $cached;
         }
@@ -63,7 +57,7 @@ class HuyHocPhanService {
 
     public function getCoursesCatalog(): array {
         try {
-            $values = $this->client->fetchSheetDataCached('courses_catalog', SHEET_COURSES_CATALOG, self::CACHE_TTL['courses_catalog'], true);
+            $values = $this->client->fetchSheetDataCached('courses_catalog', SHEET_COURSES_CATALOG, CACHE_TTL_COURSES_CATALOG, true);
             $courses = [];
             foreach ($values as $row) {
                 $id = trim($row[0] ?? '');
@@ -79,7 +73,7 @@ class HuyHocPhanService {
     }
 
     private function fetchHuyHocPhanSheet(): ?array {
-        return $this->client->fetchSheetDataCached('hhp_requests_all', SHEET_HUY_HOC_PHAN_REQUESTS, self::CACHE_TTL['hhp_requests'], true);
+        return $this->client->fetchSheetDataCached('hhp_requests_all', SHEET_HUY_HOC_PHAN_REQUESTS, CACHE_TTL_HHP_REQUESTS, true);
     }
 
     public function checkHuyHocPhanSubmitted(string $maSv, string $tieuDeDot): bool {

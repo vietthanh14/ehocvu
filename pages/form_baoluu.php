@@ -34,14 +34,10 @@ if ($coQDBaoLuu || $isTiepTucHocPending) {
 ?>
 
 
-<div class="tabs-nav">
-    <button type="button" class="tab-btn active" onclick="switchTab('baoluu-form', this)">
-        <i class="fas fa-plus-circle"></i> Tạo đơn mới
-    </button>
-    <button type="button" class="tab-btn" onclick="switchTab('baoluu-history', this)">
-        <i class="fas fa-history"></i> Lịch sử đơn
-    </button>
-</div>
+<?php 
+$tabPrefix = 'baoluu'; 
+include __DIR__ . '/../includes/components/tabs_nav.php'; 
+?>
 
 <div id="baoluu-form" class="tab-pane active">
 
@@ -105,12 +101,11 @@ if ($coQDBaoLuu || $isTiepTucHocPending) {
 </form>
 
 <!-- Progress bar -->
-<div id="upload-progress" style="display:none; margin-top:16px;">
-    <div style="height:4px; background:var(--border); border-radius:4px; overflow:hidden;">
-        <div style="height:100%; width:0%; background:linear-gradient(90deg, var(--primary), var(--primary-light)); animation: progressAnim 2s ease-in-out infinite;" id="progressBarHuyHP"></div>
-    </div>
-    <p id="progress-text" style="font-size:0.8rem; color:var(--text-light); margin-top:8px; text-align:center;">Đang xử lý...</p>
-</div>
+<?php 
+$progressId = 'upload-progress'; 
+$progressTextId = 'progress-text'; 
+include __DIR__ . '/../includes/components/progress_bar.php'; 
+?>
 
 <style>
 </style>
@@ -142,9 +137,12 @@ if ($coQDBaoLuu || $isTiepTucHocPending) {
             <tbody>
                 <?php if (empty($requests)): ?>
                     <tr>
-                        <td colspan="10" style="text-align:center; color: var(--text-light); padding: 40px 16px;">
-                            <i class="fas fa-inbox" style="font-size: 1.5rem; display:block; margin-bottom: 8px; opacity:0.4;"></i>
-                            Chưa có thủ tục nào được đăng ký
+                        <td colspan="10" style="padding: 0;">
+                            <?php 
+                            $isRow = true; 
+                            $emptyMessage = 'Chưa có thủ tục nào được đăng ký'; 
+                            include __DIR__ . '/../includes/components/empty_state.php'; 
+                            ?>
                         </td>
                     </tr>
                 <?php else: ?>
@@ -179,10 +177,10 @@ if ($coQDBaoLuu || $isTiepTucHocPending) {
 <!-- ===== MOBILE: Card view ===== -->
 <div class="history-card-view">
     <?php if (empty($requests)): ?>
-        <div class="history-empty">
-            <i class="fas fa-inbox"></i>
-            <p>Chưa có thủ tục nào được đăng ký</p>
-        </div>
+        <?php 
+        $emptyMessage = 'Chưa có thủ tục nào được đăng ký'; 
+        include __DIR__ . '/../includes/components/empty_state.php'; 
+        ?>
     <?php else: ?>
         <?php foreach ($requests as $idx => $req): ?>
             <div class="history-card">
@@ -273,36 +271,5 @@ document.getElementById('loai_yeu_cau').addEventListener('change', function() {
 });
 
 // === Form submit ===
-document.getElementById('requestForm').addEventListener('submit', function(e) {
-    e.preventDefault();
-    const btn = document.getElementById('btn-submit');
-    const spinner = document.getElementById('spinner-submit');
-    const progress = document.getElementById('upload-progress');
-    const progressText = document.getElementById('progress-text');
-
-    btn.disabled = true;
-    spinner.style.display = 'inline-block';
-    progress.style.display = 'block';
-    progressText.textContent = 'Đang xử lý...';
-
-    AppFetch.post('api/api_submit_baoluu.php', new FormData(this))
-    .then(r => r.json())
-    .then(data => {
-        spinner.style.display = 'none';
-        progress.style.display = 'none';
-        btn.disabled = false;
-        if (data.success) {
-            AppAlert.success('Thành công!', 'Hồ sơ đã được gửi đi thành công.')
-            .then(() => { location.reload(); });
-        } else {
-            AppAlert.error('Không thể nộp đơn', data.message || 'Đã có lỗi xảy ra.');
-        }
-    })
-    .catch(() => {
-        spinner.style.display = 'none';
-        progress.style.display = 'none';
-        btn.disabled = false;
-        AppAlert.error('Lỗi kết nối', 'Không thể kết nối đến máy chủ.');
-    });
-});
+AppForm.handleSubmit('requestForm', 'api/api_submit_baoluu.php');
 </script>

@@ -34,14 +34,10 @@ if ($isDotMo && !empty($config['TieuDeDot'])) {
 ?>
 
 
-<div class="tabs-nav">
-    <button type="button" class="tab-btn active" onclick="switchTab('hhp-form', this)">
-        <i class="fas fa-plus-circle"></i> Tạo đơn mới
-    </button>
-    <button type="button" class="tab-btn" onclick="switchTab('hhp-history', this)">
-        <i class="fas fa-history"></i> Lịch sử đơn
-    </button>
-</div>
+<?php 
+$tabPrefix = 'hhp'; 
+include __DIR__ . '/../includes/components/tabs_nav.php'; 
+?>
 
 <div id="hhp-form" class="tab-pane active">
 <?php
@@ -147,12 +143,11 @@ if ($isDotMo && !empty($config['TieuDeDot'])) {
 </form>
 
 <!-- Progress bar -->
-<div id="progressHuyHP" style="display:none; margin-top:16px;">
-    <div style="height:4px; background:var(--border); border-radius:4px; overflow:hidden;">
-        <div style="height:100%; width:0%; background:linear-gradient(90deg, var(--primary), var(--primary-light)); animation: progressAnim 2s ease-in-out infinite;" id="progressBarHuyHP"></div>
-    </div>
-    <p id="progressTextHuyHP" style="font-size:0.8rem; color:var(--text-light); margin-top:8px; text-align:center;">Đang xử lý...</p>
-</div>
+<?php 
+$progressId = 'progressHuyHP'; 
+$progressTextId = 'progressTextHuyHP'; 
+include __DIR__ . '/../includes/components/progress_bar.php'; 
+?>
 
 
 
@@ -249,39 +244,7 @@ document.addEventListener('click', function(e) {
 });
 
 // === Form Submit (AJAX) ===
-document.getElementById('formHuyHocPhan').addEventListener('submit', function(e) {
-    e.preventDefault();
-
-    const btn = document.getElementById('btnSubmitHuyHP');
-    const spinner = document.getElementById('spinnerHuyHP');
-    const progress = document.getElementById('progressHuyHP');
-    const progressText = document.getElementById('progressTextHuyHP');
-
-    btn.disabled = true;
-    spinner.style.display = 'inline-block';
-    progress.style.display = 'block';
-    progressText.textContent = 'Đang gửi đề nghị...';
-
-    AppFetch.post('api/api_submit_huyhocphan.php', new FormData(this))
-    .then(r => r.json())
-    .then(data => {
-        spinner.style.display = 'none';
-        progress.style.display = 'none';
-
-        if (data.success) {
-            AppAlert.success('Thành công!', data.message).then(() => location.reload());
-        } else {
-            AppAlert.error('Lỗi', data.message);
-            btn.disabled = false;
-        }
-    })
-    .catch(() => {
-        spinner.style.display = 'none';
-        progress.style.display = 'none';
-        AppAlert.error('Lỗi kết nối', 'Không thể kết nối tới máy chủ.');
-        btn.disabled = false;
-    });
-});
+AppForm.handleSubmit('formHuyHocPhan', 'api/api_submit_huyhocphan.php');
 </script>
 <?php endif; ?>
 
@@ -321,9 +284,12 @@ if (!empty($lichSuDon)) {
                 <tbody>
                 <?php if (empty($lichSuRendered)): ?>
                     <tr>
-                        <td colspan="7" style="text-align:center; color: var(--text-light); padding: 40px 16px;">
-                            <i class="fas fa-inbox" style="font-size: 1.5rem; display:block; margin-bottom: 8px; opacity:0.4;"></i>
-                            Chưa có đơn đề nghị hủy học phần nào được đăng ký
+                        <td colspan="7" style="padding: 0;">
+                            <?php 
+                            $isRow = true; 
+                            $emptyMessage = 'Chưa có đơn đề nghị hủy học phần nào được đăng ký'; 
+                            include __DIR__ . '/../includes/components/empty_state.php'; 
+                            ?>
                         </td>
                     </tr>
                 <?php else: ?>
@@ -357,10 +323,10 @@ if (!empty($lichSuDon)) {
     <!-- Mobile: Cards -->
     <div class="history-card-view">
         <?php if (empty($lichSuRendered)): ?>
-            <div class="history-empty">
-                <i class="fas fa-inbox"></i>
-                <p>Chưa có đơn đề nghị hủy học phần nào được đăng ký</p>
-            </div>
+        <?php 
+        $emptyMessage = 'Chưa có đơn đề nghị hủy học phần nào được đăng ký'; 
+        include __DIR__ . '/../includes/components/empty_state.php'; 
+        ?>
         <?php else: ?>
         <?php foreach ($lichSuRendered as $d): ?>
         <div class="history-card">

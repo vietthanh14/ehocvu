@@ -3,10 +3,6 @@ require_once __DIR__ . '/GoogleSheetClient.php';
 
 class BaoLuuService {
     private GoogleSheetClient $client;
-    
-    private const CACHE_TTL = [
-        'requests' => 120
-    ];
 
     private const REQ_COL = [
         'TIMESTAMP'    => 0,
@@ -34,7 +30,7 @@ class BaoLuuService {
     }
 
     private function fetchRequestListSheet(): ?array {
-        return $this->client->fetchSheetDataCached('requests_all', SHEET_REQUEST_LIST, self::CACHE_TTL['requests']);
+        return $this->client->fetchSheetDataCached('requests_all', SHEET_REQUEST_LIST, CACHE_TTL_REQUESTS);
     }
 
     public function getStudentSubmitEligibility(string $maSv): array {

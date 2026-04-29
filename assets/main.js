@@ -108,3 +108,47 @@ const AppAlert = {
         AppToast.fire({ icon: 'warning', title: title });
     }
 };
+
+// Tiện ích xử lý AJAX Form
+const AppForm = {
+    handleSubmit: function(formId, apiEndpoint, extraData = null) {
+        document.getElementById(formId).addEventListener('submit', function(e) {
+            e.preventDefault();
+            const form = this;
+            const btn = form.querySelector('button[type="submit"]');
+            const spinner = btn.querySelector('.spinner-custom');
+            const progress = document.getElementById(form.dataset.progressId || 'upload-progress');
+            const progressText = document.getElementById(form.dataset.progressTextId || 'progress-text');
+
+            if (btn) btn.disabled = true;
+            if (spinner) spinner.style.display = 'inline-block';
+            if (progress) progress.style.display = 'block';
+            if (progressText) progressText.textContent = 'Đang xử lý...';
+
+            const formData = new FormData(form);
+            if (extraData) {
+                for (const key in extraData) formData.append(key, extraData[key]);
+            }
+
+            AppFetch.post(apiEndpoint, formData)
+            .then(r => r.json())
+            .then(data => {
+                if (spinner) spinner.style.display = 'none';
+                if (progress) progress.style.display = 'none';
+                if (btn) btn.disabled = false;
+
+                if (data.success) {
+                    AppAlert.success('Thành công!', data.message || 'Đã gửi yêu cầu thành công.').then(() => location.reload());
+                } else {
+                    AppAlert.error('Lỗi', data.message || 'Có lỗi xảy ra.');
+                }
+            })
+            .catch(() => {
+                if (spinner) spinner.style.display = 'none';
+                if (progress) progress.style.display = 'none';
+                if (btn) btn.disabled = false;
+                AppAlert.error('Lỗi kết nối', 'Không thể kết nối đến máy chủ.');
+            });
+        });
+    }
+};
