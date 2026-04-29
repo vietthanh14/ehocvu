@@ -3,6 +3,8 @@
  * Form Đề nghị Hủy Học Phần
  * File này được include bởi dashboard.php
  * Biến $student đã có sẵn từ session
+ *
+ * @var array $student
  */
 
 require_once __DIR__ . '/../core/GoogleSheetService.php';
@@ -68,8 +70,7 @@ if ($isDotMo && !empty($config['TieuDeDot'])) {
     <h6><i class="fas fa-calendar-check"></i> <?= htmlspecialchars($config['TieuDeDot']) ?></h6>
     <ul>
         <li>Thời gian nộp đơn: <strong><?= htmlspecialchars($config['TuNgay']) ?></strong> — <strong><?= htmlspecialchars($config['DenNgay']) ?></strong></li>
-        <li>Mỗi sinh viên chỉ được nộp <strong>1 đơn duy nhất</strong> trong mỗi đợt.</li>
-        <li>Hãy liệt kê đầy đủ tất cả các học phần cần hủy trong 1 lần gửi.</li>
+        <li>Hãy liệt kê đầy đủ tất cả các học phần cần hủy.</li>
     </ul>
 </div>
 

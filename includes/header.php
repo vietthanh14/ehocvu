@@ -22,8 +22,8 @@
         <div style="display: flex; align-items: center; gap: 12px;">
             <button class="btn-menu-toggle" id="menuToggle"><i class="fas fa-bars"></i></button>
             <div class="topbar-brand">
-                <img src="assets/logo.png" style="width: 36px; height: 36px; border-radius: 8px; object-fit: cover;" alt="Logo">
-                <span>ĐH Hạ Long</span>
+                <img src="assets/logo.png" style="height: 38px; width: auto; object-fit: contain;" alt="Logo">
+                <span style="margin-left: 4px; display: none;">ĐH Hạ Long</span>
             </div>
         </div>
         <div class="topbar-user">
