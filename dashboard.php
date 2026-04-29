@@ -8,7 +8,11 @@ if (!isset($_SESSION['student'])) {
     exit;
 }
 
+$allowedPages = ['home', 'baoluu', 'huyhocphan'];
 $page = isset($_GET['page']) ? $_GET['page'] : 'home';
+if (!in_array($page, $allowedPages)) {
+    $page = 'home';
+}
 $student = $_SESSION['student'];
 ?>
 <?php include __DIR__ . '/includes/header.php'; ?>

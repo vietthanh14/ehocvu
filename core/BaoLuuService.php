@@ -23,7 +23,7 @@ class BaoLuuService {
         'BL_DEN'       => 11,
         'LINK_DON'     => 12,
         'TRANG_THAI'   => 13,
-        'GHI_CHU'      => 14,
+        'GHI_CHU'      => 14,  // Lý do (SV ghi) + Ghi chú (GV ghi thêm)
         'SO_QD'        => 15,
         'NGAY_QD'      => 16,
         'LINK_QD'      => 17,
@@ -73,7 +73,7 @@ class BaoLuuService {
         ];
     }
 
-    public function getStudentRequests($maSv) {
+    public function getStudentRequests(string $maSv): array {
         $values = $this->fetchRequestListSheet();
         $requests = [];
         if (empty($values)) return $requests;
@@ -99,7 +99,7 @@ class BaoLuuService {
         return array_reverse($requests);
     }
 
-    public function appendRequest($data) {
+    public function appendRequest(array $data): bool {
         $rowData = [
             date('d/m/Y H:i:s'),
             $data['ma_sv'],
@@ -121,7 +121,7 @@ class BaoLuuService {
 
         $success = $this->client->appendRowToSheet(SHEET_REQUEST_LIST, $rowData);
         if ($success) {
-            $this->client->getCacheManager()->delete('requests_all');
+            $this->client->getCacheManager()->clear('requests_all');
         }
         return $success;
     }

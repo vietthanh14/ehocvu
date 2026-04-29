@@ -32,7 +32,7 @@ class StudentRepository {
         return $this->client->fetchSheetDataCached('requests_all', SHEET_REQUEST_LIST, self::CACHE_TTL['requests']);
     }
 
-    public function getStudentInfo($maSv) {
+    public function getStudentInfo(string $maSv): ?array {
         $values = $this->fetchStudentListSheet();
 
         if (empty($values)) {
@@ -122,7 +122,7 @@ class StudentRepository {
         return null;
     }
 
-    public function isExpelled($maSv) {
+    public function isExpelled(string $maSv): bool {
         $values = $this->fetchExpelledListSheet();
         if (empty($values)) return false;
 

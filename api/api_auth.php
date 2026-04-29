@@ -5,6 +5,7 @@ require_once __DIR__ . '/../core/Response.php';
 require_once __DIR__ . '/../core/Security.php';
 
 Security::requirePost();
+Security::validateCsrfToken();
 
 require_once __DIR__ . '/../core/StudentRepository.php';
 

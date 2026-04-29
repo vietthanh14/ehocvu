@@ -19,3 +19,8 @@ Options -Indexes
     RewriteEngine On
     RewriteRule ^(cache|\.git|\.agent|vendor)/ - [F,L]
 </IfModule>
+
+# Chặn truy cập file quản trị (chỉ dùng qua CLI hoặc localhost)
+<FilesMatch "^(clearcache|refactor)\.php$">
+    Require local
+</FilesMatch>

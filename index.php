@@ -1,5 +1,6 @@
 <?php
 require_once __DIR__ . '/config.php';
+require_once __DIR__ . '/core/Security.php';
 require_once __DIR__ . '/core/NotificationService.php';
 
 header("Cache-Control: no-store, no-cache, must-revalidate, max-age=0");
@@ -21,6 +22,7 @@ $globalNotifications = $notiService->getGlobalNotifications();
     <title>Cổng Thông Tin Sinh Viên - Đại Học Hạ Long</title>
     <link rel="icon" type="image/png" href="assets/logo.png">
     <meta name="description" content="Hệ thống đăng ký thủ tục bảo lưu và tiếp tục học dành cho sinh viên">
+    <meta name="csrf-token" content="<?= Security::generateCsrfToken() ?>">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     <link href="assets/style.css" rel="stylesheet">
@@ -111,10 +113,9 @@ $globalNotifications = $notiService->getGlobalNotifications();
             spinner.style.display = 'inline-block';
             errorMsg.style.display = 'none';
 
-            fetch('api/api_auth.php', {
-                method: 'POST',
-                headers: {'Content-Type': 'application/x-www-form-urlencoded'},
-                body: 'ma_sv=' + encodeURIComponent(masv) + '&ngay_sinh=' + encodeURIComponent(ngaysinh)
+            AppFetch.post('api/api_auth.php', {
+                ma_sv: masv,
+                ngay_sinh: ngaysinh
             })
                 .then(res => res.json())
                 .then(data => {
