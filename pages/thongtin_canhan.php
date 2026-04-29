@@ -24,7 +24,7 @@ $student = $_SESSION['student'];
             <div class="lbl">SĐT liên hệ</div>
             <div class="val" style="display: flex; align-items: center; gap: 10px;">
                 <span id="txt-sdt" data-phone="<?= htmlspecialchars($student['sdt']) ?>"><?= htmlspecialchars($student['sdt']) ?: '<em style="color:var(--text-light);">(Trống)</em>' ?></span>
-                <button type="button" onclick="editPhone()" style="background: none; border: none; color: var(--primary); cursor: pointer; padding: 4px; border-radius: 4px;" title="Cập nhật Số điện thoại">
+                <button type="button" aria-label="Cập nhật Số điện thoại" onclick="editPhone()" style="background: none; border: none; color: var(--primary); cursor: pointer; padding: 10px; border-radius: 8px; margin-left: -6px;" title="Cập nhật Số điện thoại">
                     <i class="fas fa-edit"></i>
                 </button>
             </div>

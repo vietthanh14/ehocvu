@@ -31,6 +31,15 @@ body { background: var(--body-bg); color: var(--text-dark); overflow-x: hidden; 
 }
 
 /* Sidebar */
+.sidebar-overlay {
+    display: none;
+    position: fixed; inset: 0; top: 56px;
+    background: rgba(0,0,0,0.4); z-index: 1030;
+    opacity: 0; transition: opacity 0.3s ease;
+}
+.sidebar-overlay.show { display: block; opacity: 1; }
+@media (min-width: 769px) { .sidebar-overlay { display: none !important; } }
+
 .sidebar {
     position: fixed; top: 56px; left: 0; width: 250px;
     height: calc(100vh - 56px);

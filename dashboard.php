@@ -42,7 +42,7 @@ $student = $_SESSION['student'];
                 <ul>
                     <li><strong>Quy định thủ tục:</strong> Kiểm tra thông tin cá nhân trước khi đăng ký.</li>
                     <li><strong>Lưu ý:</strong> Số điện thoại đăng kí zalo không được để chế độ chặn để tiện cho việc liên lạc khi cần.</li>
-                    <li><strong>Biểu mẫu thủ tục:</strong> Sinh viên tải các biểu mẫu đơn đăng ký <a href="https://drive.google.com/drive/folders/1zs6cYMC95_dpMt29hSVpWhr0As10Y8eA" target="_blank" style="color: #0f766e; font-weight: 600; text-decoration: underline;">tại đây</a>.</li>
+                    <li><strong>Biểu mẫu thủ tục:</strong> Tải các biểu mẫu đơn đăng ký <a href="https://drive.google.com/drive/folders/1zs6cYMC95_dpMt29hSVpWhr0As10Y8eA" target="_blank" style="display: inline-flex; align-items: center; gap: 6px; background: var(--primary-light); color: white; padding: 2px 8px; border-radius: 4px; font-size: 0.85rem; font-weight: 500; text-decoration: none; margin-left: 4px;"><i class="fas fa-download" style="font-size: 0.8rem;"></i> Tải về tại đây</a></li>
                 </ul>
             </div>
             <?php include 'pages/thongtin_canhan.php'; ?>

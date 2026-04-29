@@ -1,3 +1,4 @@
+    <div class="sidebar-overlay" id="sidebarOverlay"></div>
     <!-- Sidebar -->
     <nav class="sidebar" id="sidebar">
         <div class="sidebar-section">

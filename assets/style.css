@@ -203,6 +203,7 @@ input[type="number"]::-webkit-outer-spin-button {
 }
 input[type="number"] {
     -moz-appearance: textfield;
+    appearance: textfield;
 }
 .form-field textarea {
     resize: vertical;
@@ -239,6 +240,9 @@ input[type="number"] {
 .btn-primary-custom:hover:not(:disabled) {
     transform: translateY(-1px);
     box-shadow: 0 4px 16px rgba(20, 184, 166, 0.3);
+}
+.btn-primary-custom:active:not(:disabled) {
+    transform: translateY(0) scale(0.98);
 }
 .btn-primary-custom:disabled {
     opacity: 0.7;
@@ -369,7 +373,7 @@ input[type="number"] {
 .profile-row .lbl {
     width: 120px;
     flex-shrink: 0;
-    font-size: 0.78rem;
+    font-size: 0.85rem;
     font-weight: 600;
     color: var(--text-light);
     text-transform: uppercase;
@@ -628,7 +632,7 @@ input[type="number"] {
 .hc-label {
     flex-shrink: 0;
     width: 70px;
-    font-size: 0.72rem;
+    font-size: 0.8rem;
     font-weight: 600;
     color: var(--text-light, #94a3b8);
     text-transform: uppercase;

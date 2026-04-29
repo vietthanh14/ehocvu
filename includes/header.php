@@ -20,7 +20,7 @@
     <!-- Topbar -->
     <header class="topbar">
         <div style="display: flex; align-items: center; gap: 12px;">
-            <button class="btn-menu-toggle" id="menuToggle"><i class="fas fa-bars"></i></button>
+            <button class="btn-menu-toggle" id="menuToggle" aria-label="Mở menu"><i class="fas fa-bars"></i></button>
             <div class="topbar-brand">
                 <img src="assets/logo.png" style="height: 38px; width: auto; object-fit: contain;" alt="Logo">
                 <span class="brand-text" style="margin-left: 8px; text-transform: uppercase; font-size: 1.05rem; letter-spacing: 0.03em;">Đại học Hạ Long</span>

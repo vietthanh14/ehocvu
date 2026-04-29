@@ -52,27 +52,31 @@ if ($isDotMo && !empty($config['TieuDeDot'])) {
 
 <?php if (!$isDotMo): ?>
 <!-- === MÀN HÌNH KHÓA: Đợt đã đóng === -->
-<div style="text-align: center; padding: 60px 20px;">
-    <i class="fas fa-calendar-times" style="font-size: 4.5rem; color: #cbd5e1; margin-bottom: 16px; display: block;"></i>
-    <h3 style="color: var(--text-dark); margin-bottom: 12px;">Đợt đăng ký đã đóng</h3>
-    <p style="color: var(--text-light); max-width: 500px; margin: 0 auto; line-height: 1.6;">
+<div class="notice-card" style="text-align: center; padding: 40px 20px; background: #fff; border: 1px solid var(--border); border-radius: 12px; margin-bottom: 24px; display: flex; flex-direction: column; align-items: center;">
+    <div style="width: 64px; height: 64px; background: rgba(100, 116, 139, 0.1); color: #64748b; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 2rem; margin-bottom: 20px;">
+        <i class="fas fa-calendar-times"></i>
+    </div>
+    <h4 style="color: var(--text-dark); margin-bottom: 12px; font-weight: 600; font-size: 1.15rem;">Đợt đăng ký đã đóng</h4>
+    <p style="color: var(--text-mid); max-width: 500px; margin: 0 auto; line-height: 1.6; font-size: 0.95rem;">
         <?= htmlspecialchars($config['ThongBaoDong']) ?>
     </p>
     <?php if (!empty($config['TuNgay']) && !empty($config['DenNgay'])): ?>
-    <p style="color: var(--text-light); margin-top: 12px; font-size: 0.85rem;">
-        <i class="fas fa-clock"></i> Thời gian mở gần nhất: <strong><?= htmlspecialchars($config['TuNgay']) ?></strong> — <strong><?= htmlspecialchars($config['DenNgay']) ?></strong>
-    </p>
+    <div style="display: inline-flex; align-items: center; margin-top: 16px; padding: 8px 16px; background: #f8fafc; border-radius: 8px; color: var(--text-mid); font-size: 0.85rem; border: 1px solid #e2e8f0;">
+        <i class="far fa-clock" style="margin-right: 6px;"></i> Thời gian mở gần nhất: <strong style="margin-left: 4px;"><?= htmlspecialchars($config['TuNgay']) ?></strong> <span style="margin: 0 6px;">—</span> <strong><?= htmlspecialchars($config['DenNgay']) ?></strong>
+    </div>
     <?php endif; ?>
 </div>
 
 <?php elseif ($daNopDon): ?>
 <!-- === ĐÃ NỘP ĐƠN: Thông báo xác nhận === -->
-<div style="text-align: center; padding: 40px 20px;">
-    <div style="font-size: 3.5rem; margin-bottom: 16px;">✅</div>
-    <h3 style="color: var(--text-dark); margin-bottom: 10px;">Bạn đã nộp đơn trong đợt này</h3>
-    <p style="color: var(--text-light); max-width: 480px; margin: 0 auto; line-height: 1.6;">
-        Đơn đề nghị hủy học phần của bạn trong đợt "<strong><?= htmlspecialchars($config['TieuDeDot']) ?></strong>" đã được ghi nhận.
-        Vui lòng theo dõi trạng thái xử lý ở bảng lịch sử bên dưới.
+<div class="notice-card" style="text-align: center; padding: 40px 20px; background: #fff; border: 1px solid var(--border); border-radius: 12px; margin-bottom: 24px; display: flex; flex-direction: column; align-items: center;">
+    <div style="width: 64px; height: 64px; background: rgba(20, 184, 166, 0.1); color: var(--primary); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 2rem; margin-bottom: 20px;">
+        <i class="fas fa-check-circle"></i>
+    </div>
+    <h4 style="color: var(--text-dark); margin-bottom: 12px; font-weight: 600; font-size: 1.15rem;">Bạn đã nộp đơn trong đợt này</h4>
+    <p style="color: var(--text-mid); max-width: 500px; margin: 0 auto; line-height: 1.6; font-size: 0.95rem;">
+        Đơn đề nghị hủy học phần của bạn trong đợt "<strong><?= htmlspecialchars($config['TieuDeDot']) ?></strong>" đã được ghi nhận.<br>
+        Vui lòng theo dõi trạng thái xử lý ở tab <strong>Lịch sử đơn</strong>.
     </p>
 </div>
 
@@ -284,13 +288,14 @@ document.getElementById('formHuyHocPhan').addEventListener('submit', function(e)
 </div>
 
 <div id="hhp-history" class="tab-pane">
-<?php if (!empty($lichSuDon)): ?>
 <!-- === LỊCH SỬ ĐƠN ĐÃ NỘP === -->
 <?php
 $lichSuRendered = [];
-foreach ($lichSuDon as $idx => $don) {
-    $don['_rbg'] = $idx % 2 === 0 ? '#fff' : '#f8fafc';
-    $lichSuRendered[] = $don;
+if (!empty($lichSuDon)) {
+    foreach ($lichSuDon as $idx => $don) {
+        $don['_rbg'] = $idx % 2 === 0 ? '#fff' : '#f8fafc';
+        $lichSuRendered[] = $don;
+    }
 }
 ?>
 <div style="margin-bottom: 30px;">
@@ -314,6 +319,14 @@ foreach ($lichSuDon as $idx => $don) {
                     </tr>
                 </thead>
                 <tbody>
+                <?php if (empty($lichSuRendered)): ?>
+                    <tr>
+                        <td colspan="7" style="text-align:center; color: var(--text-light); padding: 40px 16px;">
+                            <i class="fas fa-inbox" style="font-size: 1.5rem; display:block; margin-bottom: 8px; opacity:0.4;"></i>
+                            Chưa có đơn đề nghị hủy học phần nào được đăng ký
+                        </td>
+                    </tr>
+                <?php else: ?>
                 <?php foreach ($lichSuRendered as $d): ?>
                     <tr style="background:<?= $d['_rbg'] ?>;">
                         <td><?= htmlspecialchars($d['timestamp']) ?></td>
@@ -335,6 +348,7 @@ foreach ($lichSuDon as $idx => $don) {
                         </td>
                     </tr>
                 <?php endforeach; ?>
+                <?php endif; ?>
                 </tbody>
             </table>
         </div>
@@ -342,6 +356,12 @@ foreach ($lichSuDon as $idx => $don) {
 
     <!-- Mobile: Cards -->
     <div class="history-card-view">
+        <?php if (empty($lichSuRendered)): ?>
+            <div class="history-empty">
+                <i class="fas fa-inbox"></i>
+                <p>Chưa có đơn đề nghị hủy học phần nào được đăng ký</p>
+            </div>
+        <?php else: ?>
         <?php foreach ($lichSuRendered as $d): ?>
         <div class="history-card">
             <div class="history-card-header">
@@ -376,6 +396,7 @@ foreach ($lichSuDon as $idx => $don) {
             <?php endif; ?>
         </div>
         <?php endforeach; ?>
+        <?php endif; ?>
     </div>
 </div>
 
@@ -440,6 +461,5 @@ foreach ($lichSuDon as $idx => $don) {
     word-break: break-word;
 }
 </style>
-<?php endif; ?>
 
 </div>
