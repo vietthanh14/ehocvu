@@ -1,5 +1,5 @@
 <?php
-require_once __DIR__ . '/../core/GoogleSheetService.php';
+require_once __DIR__ . '/../core/HuyHocPhanService.php';
 require_once __DIR__ . '/../core/Response.php';
 require_once __DIR__ . '/../core/ApiHandler.php';
 
@@ -18,7 +18,7 @@ if (empty($danhSachMon) || empty($lyDo)) {
     Response::error('Vui lòng điền đầy đủ danh sách môn cần hủy và lý do.');
 }
 
-$service = GoogleSheetService::getInstance();
+$service = new HuyHocPhanService();
 
 // === Gate Check: Kiểm tra Đợt mở ===
 $config = $service->getHuyHocPhanConfig();

@@ -7,9 +7,9 @@
  * @var array $student
  */
 
-require_once __DIR__ . '/../core/GoogleSheetService.php';
-require_once __DIR__ . '/../core/UIHelper.php';
-$service = GoogleSheetService::getInstance();
+require_once __DIR__ . '/../core/HuyHocPhanService.php';
+require_once __DIR__ . '/../includes/helpers/UIHelper.php';
+$service = new HuyHocPhanService();
 $config = $service->getHuyHocPhanConfig();
 $lichSuDon = $service->getHuyHocPhanHistory($student['ma_sv']);
 

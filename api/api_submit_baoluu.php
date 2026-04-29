@@ -1,5 +1,6 @@
 <?php
-require_once __DIR__ . '/../core/GoogleSheetService.php';
+require_once __DIR__ . '/../core/StudentRepository.php';
+require_once __DIR__ . '/../core/BaoLuuService.php';
 require_once __DIR__ . '/../core/Response.php';
 require_once __DIR__ . '/../core/ApiHandler.php';
 
@@ -27,13 +28,14 @@ if (empty($loaiYeuCau) || empty($lyDo)) {
 }
 
 // === Kiểm tra nghiệp vụ TRƯỚC khi upload ===
-$service = GoogleSheetService::getInstance();
+$studentRepo = new StudentRepository();
+$baoLuuService = new BaoLuuService();
 
-if ($service->isExpelled($maSv)) {
+if ($studentRepo->isExpelled($maSv)) {
     Response::error('Lỗi: Sinh viên đang thuộc diện bị xóa tên!');
 }
 
-$eligibility = $service->getStudentSubmitEligibility($maSv);
+$eligibility = $baoLuuService->getStudentSubmitEligibility($maSv);
 
 if (in_array($loaiYeuCau, $eligibility['pendingTypes'])) {
     Response::error('Bạn đã có đơn "' . htmlspecialchars($loaiYeuCau) . '" đang chờ xử lý. Vui lòng chờ kết quả trước khi nộp đơn mới cùng loại.');
@@ -72,7 +74,7 @@ $data = [
 ];
 
 // Ghi dữ liệu vào Google Sheet
-$success = $service->appendRequest($data);
+$success = $baoLuuService->appendRequest($data);
 
 if ($success) {
     Response::success('Đã nộp đơn yêu cầu "' . htmlspecialchars($loaiYeuCau) . '" thành công. Vui lòng chờ phản hồi từ nhà trường.');

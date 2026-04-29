@@ -17,7 +17,7 @@ session_set_cookie_params([
 define('SPREADSHEET_ID', '1ksjiYCVIDqfdsWTx260YOpBGqj83PrcM5MCdZQyL5j0');
 
 // Đường dẫn tới file JSON xác thực của Service Account
-define('GOOGLE_AUTH_JSON_PATH', __DIR__ . '/serious-app-415103-05cba52d248a.json');
+define('GOOGLE_AUTH_JSON_PATH', __DIR__ . '/config/credentials/serious-app-415103-05cba52d248a.json');
 
 // === Cấu hình Tên Sheet ===
 // Chú ý: Đảm bảo tên sheet trong Google Spreadsheet giống y hệt chuỗi này

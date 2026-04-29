@@ -6,7 +6,7 @@ require_once __DIR__ . '/../core/Security.php';
 
 Security::requirePost();
 
-require_once __DIR__ . '/../core/GoogleSheetService.php';
+require_once __DIR__ . '/../core/StudentRepository.php';
 
 // === Rate Limiting (Chống Brute Force / Auto Submissions) ===
 $ip = $_SERVER['REMOTE_ADDR'] ?? 'unknown';
@@ -45,16 +45,16 @@ if (empty($maSv) || empty($ngaySinh)) {
     Response::error('Vui lòng cung cấp đầy đủ Mã Sinh Viên và Ngày sinh.');
 }
 
-$service = GoogleSheetService::getInstance();
+$repo = new StudentRepository();
 
 // 1. Kiểm tra dính án kỉ luật
 try {
-    if ($service->isExpelled($maSv)) {
+    if ($repo->isExpelled($maSv)) {
         Response::error('Sinh viên đang trong danh sách bị xóa tên hoặc buộc thôi học! Không thể đăng ký thủ tục.');
     }
 
     // 2. Lấy thông tin
-    $studentInfo = $service->getStudentInfo($maSv);
+    $studentInfo = $repo->getStudentInfo($maSv);
 } catch (Exception $e) {
     Response::error('Lỗi kết nối Server: Google API từ chối quyền truy cập hoặc cấu hình sai (Chi tiết: ' . $e->getMessage() . ')');
 }

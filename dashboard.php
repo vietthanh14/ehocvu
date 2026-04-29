@@ -45,28 +45,11 @@ $student = $_SESSION['student'];
 
         <?php elseif ($page == 'baoluu'): ?>
             <div class="page-header">
-                <h2>Đăng kí thủ tục bảo lưu học lại</h2>
-                <span class="breadcrumb-text"><i class="fas fa-home"></i> Trang chủ / Đăng ký</span>
+                <h2>Thủ tục Bảo lưu / Tiếp tục học</h2>
+                <span class="breadcrumb-text"><i class="fas fa-home"></i> Trang chủ / Bảo lưu</span>
             </div>
-            <div class="tabs-nav">
-                <button class="tab-btn active" onclick="switchTab('baoluu-form', this)">
-                    <i class="fas fa-plus-circle"></i> Tạo đơn mới
-                </button>
-                <button class="tab-btn" onclick="switchTab('baoluu-history', this)">
-                    <i class="fas fa-history"></i> Lịch sử đơn
-                </button>
-            </div>
-
-            <div id="baoluu-form" class="tab-pane active">
-                <div class="card-modern" style="padding: 28px; margin-bottom: 24px;">
-                    <?php include 'pages/form_baoluu.php'; ?>
-                </div>
-            </div>
-
-            <div id="baoluu-history" class="tab-pane">
-                <div class="card-modern" style="margin-bottom: 30px;">
-                    <?php include 'pages/table_lichsu.php'; ?>
-                </div>
+            <div class="card-modern" style="padding: 28px; margin-bottom: 24px;">
+                <?php include 'pages/form_baoluu.php'; ?>
             </div>
         <?php elseif ($page == 'huyhocphan'): ?>
             <div class="page-header">

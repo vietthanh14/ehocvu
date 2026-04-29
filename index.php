@@ -1,6 +1,6 @@
 <?php
 require_once __DIR__ . '/config.php';
-require_once __DIR__ . '/core/GoogleSheetService.php';
+require_once __DIR__ . '/core/NotificationService.php';
 
 header("Cache-Control: no-store, no-cache, must-revalidate, max-age=0");
 header("Pragma: no-cache");
@@ -10,7 +10,8 @@ if (isset($_SESSION['student'])) {
     exit;
 }
 
-$globalNotifications = GoogleSheetService::getInstance()->getGlobalNotifications();
+$notiService = new NotificationService();
+$globalNotifications = $notiService->getGlobalNotifications();
 ?>
 <!DOCTYPE html>
 <html lang="vi">

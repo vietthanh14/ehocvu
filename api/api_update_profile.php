@@ -17,10 +17,10 @@ if (!preg_match('/^[0-9]{9,11}$/', $newPhone)) {
 
 Security::checkSessionLock('update_profile', 10, $maSv);
 
-require_once __DIR__ . '/../core/GoogleSheetService.php';
-$service = GoogleSheetService::getInstance();
+require_once __DIR__ . '/../core/StudentRepository.php';
+$repo = new StudentRepository();
 
-$success = $service->updateStudentPhone($maSv, $newPhone);
+$success = $repo->updateStudentPhone($maSv, $newPhone);
 
 if ($success) {
     // Cập nhật lại session
