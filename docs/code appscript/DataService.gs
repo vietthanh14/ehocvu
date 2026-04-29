@@ -1,8 +1,12 @@
+// Hàm helper lấy sheet dữ liệu chuẩn
+function getWorkingSheet() {
+  var ss = SpreadsheetApp.getActiveSpreadsheet();
+  return ss.getSheetByName('DS Yêu cầu') || ss.getSheetByName('Sheet3') || ss.getActiveSheet();
+}
+
 // Đọc dữ liệu từ Sheet (Sử dụng tìm kiếm tên cột động để chống lỗi)
 function getPendingStudents(typeId) {
-  var ss = SpreadsheetApp.getActiveSpreadsheet();
-  // Ưu tiên tìm đúng tên sheet, nếu không có thì lấy sheet hiện tại đang mở
-  var sheet = ss.getSheetByName('DS Yêu cầu') || ss.getSheetByName('Sheet3') || ss.getActiveSheet();
+  var sheet = getWorkingSheet();
   
   var data = sheet.getDataRange().getValues();
   if (data.length < 2) return [];
@@ -74,6 +78,7 @@ function getPendingStudents(typeId) {
       }
 
       students.push({
+        rowIdx: i + 1, // Lưu lại vị trí dòng (1-indexed) để update sau này
         maSV: maSV, 
         hoTen: (row[col.hoTen] || '').toString(),
         ngaySinh: ngaySinhStr,

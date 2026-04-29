@@ -30,14 +30,15 @@
 <body>
     <div class="container-fluid px-1">
         <h4 class="mb-3 text-primary fw-bold text-center text-uppercase border-bottom pb-2">📜 Tạo Quyết Định</h4>
-        
+
         <div class="row mx-0">
             <!-- CỘT TRÁI: CÁC TRƯỜNG NHẬP LIỆU -->
             <div class="col-md-4 px-1">
                 <!-- CHỌN LOẠI QUYẾT ĐỊNH -->
                 <div class="bg-white p-3 rounded border shadow-sm mb-3">
                     <label class="form-label fw-bold text-secondary">Loại Quyết Định</label>
-                    <select id="decisionType" class="form-select border-primary fw-bold text-primary" onchange="loadStudents()">
+                    <select id="decisionType" class="form-select border-primary fw-bold text-primary"
+                        onchange="loadStudents()">
                         <option value="" selected disabled>👉 Hãy chọn loại quyết định</option>
                         <option value="baoluu">📚 Quyết định Bảo lưu kết quả học tập</option>
                         <option value="tieptuchoc">🎓 Quyết định Tiếp tục học sau bảo lưu</option>
@@ -57,7 +58,8 @@
                 </div>
 
                 <!-- HỌC KÌ VÀ NĂM HỌC -->
-                <div id="tiepTucHocFields" class="row bg-white p-3 rounded border shadow-sm mb-3 mx-0" style="display: none;">
+                <div id="tiepTucHocFields" class="row bg-white p-3 rounded border shadow-sm mb-3 mx-0"
+                    style="display: none;">
                     <div class="col-6 ps-0 pe-2">
                         <label class="form-label fw-bold text-secondary">Từ Học kì</label>
                         <input type="text" id="hocKi" class="form-control" placeholder="VD: 2">
@@ -68,10 +70,11 @@
                     </div>
                 </div>
 
-                <button id="btnGenerate" class="btn btn-success w-100 fw-bold py-3 shadow-sm mb-3 text-uppercase fs-5" onclick="generateDocs()" disabled>
+                <button id="btnGenerate" class="btn btn-success w-100 fw-bold py-3 shadow-sm mb-3 text-uppercase fs-5"
+                    onclick="generateDocs()" disabled>
                     🖨️ Xuất file Quyết định
                 </button>
-                
+
                 <div id="result" class="text-center mt-2"></div>
             </div>
 
@@ -86,8 +89,10 @@
                     <div id="content" style="display:none;">
                         <div class="d-flex justify-content-between align-items-center mb-2 px-1 border-bottom pb-2">
                             <div>
-                                <input type="checkbox" id="selectAll" class="form-check-input" onchange="toggleSelectAll()">
-                                <label for="selectAll" class="form-check-label ms-1 fw-bold text-primary">Chọn tất cả</label>
+                                <input type="checkbox" id="selectAll" class="form-check-input"
+                                    onchange="toggleSelectAll()">
+                                <label for="selectAll" class="form-check-label ms-1 fw-bold text-primary">Chọn tất
+                                    cả</label>
                             </div>
                             <span class="badge bg-primary px-3 py-2 fs-6" id="countBadge">Đã chọn: 0</span>
                         </div>
@@ -119,21 +124,21 @@
         var currentLoadId = 0;
 
         // Chống reload trang khi bấm Enter trong ô input
-        document.addEventListener('keydown', function(event) {
+        document.addEventListener('keydown', function (event) {
             if (event.key === 'Enter') {
                 event.preventDefault();
             }
         });
 
         // Gọi load dữ liệu lần đầu tiên
-        window.onload = function() {
+        window.onload = function () {
             loadStudents();
         };
 
         function loadStudents() {
             // Lấy ID loại quyết định đang được chọn
             var selectedType = document.getElementById('decisionType').value;
-            
+
             // Nếu chưa chọn loại Quyết định nào thì không làm gì cả
             if (!selectedType) {
                 document.getElementById('loading').style.display = 'none';
@@ -144,7 +149,7 @@
             // Tạo 1 ID riêng cho lần tải này để chống lỗi Race Condition (tải đè)
             currentLoadId++;
             var myLoadId = currentLoadId;
-            
+
             // Hiển thị/ẩn ô nhập Học kì và Năm học dựa theo loại quyết định
             var tiepTucHocFields = document.getElementById('tiepTucHocFields');
             if (selectedType === 'tieptuchoc') {
@@ -152,7 +157,7 @@
             } else {
                 tiepTucHocFields.style.display = 'none';
             }
-            
+
             // Cập nhật giao diện đang loading
             document.getElementById('content').style.display = 'none';
             document.getElementById('loading').style.display = 'block';
@@ -161,15 +166,21 @@
             document.getElementById('selectAll').checked = false;
 
             // Gọi hàm getPendingStudents(typeId) trên server
-            google.script.run.withSuccessHandler(function (data) {
-                // Nếu người dùng đã bấm chọn cái khác rồi thì bỏ qua kết quả cũ này
-                if (myLoadId !== currentLoadId) return; 
-                
-                document.getElementById('loading').style.display = 'none';
-                document.getElementById('content').style.display = 'block';
-                globalStudents = data;
-                renderTable();
-            }).getPendingStudents(selectedType);
+            google.script.run
+                .withSuccessHandler(function (data) {
+                    // Nếu người dùng đã bấm chọn cái khác rồi thì bỏ qua kết quả cũ này
+                    if (myLoadId !== currentLoadId) return;
+
+                    document.getElementById('loading').style.display = 'none';
+                    document.getElementById('content').style.display = 'block';
+                    globalStudents = data;
+                    renderTable();
+                })
+                .withFailureHandler(function (error) {
+                    document.getElementById('loading').style.display = 'none';
+                    document.getElementById('result').innerHTML = '<div class="alert alert-danger fs-6 mt-3 text-start">❌ <b>Lỗi tải dữ liệu:</b> ' + error.message + '<br><small>Vui lòng kiểm tra lại cấu trúc file Excel hoặc quyền truy cập của AppScript.</small></div>';
+                })
+                .getPendingStudents(selectedType);
         }
 
         function renderTable() {
@@ -178,8 +189,8 @@
             var selectedType = document.getElementById('decisionType').value;
 
             if (globalStudents.length === 0) {
-                var message = selectedType === 'baoluu' 
-                    ? 'Không có sinh viên nào đang chờ duyệt BẢO LƯU!' 
+                var message = selectedType === 'baoluu'
+                    ? 'Không có sinh viên nào đang chờ duyệt BẢO LƯU!'
                     : 'Không có sinh viên nào đang chờ duyệt TIẾP TỤC HỌC!';
                 tbody.innerHTML = '<tr><td colspan="5" class="text-center text-danger fw-bold py-4">' + message + '</td></tr>';
                 updateCount(); // Reset lại nút bấm
@@ -221,7 +232,7 @@
             var soQD = document.getElementById('soQD').value;
             var ngayQD = document.getElementById('ngayQD').value;
             var selectedType = document.getElementById('decisionType').value;
-            
+
             var hocKi = document.getElementById('hocKi').value;
             var namHoc = document.getElementById('namHoc').value;
 

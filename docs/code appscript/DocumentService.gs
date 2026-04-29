@@ -152,6 +152,47 @@ function generateDecisionDocs(selectedStudents, soQD, ngayQD_input, typeId, hocK
     var docxFile = finalFolder.createFile(docxBlob);
     tempDoc.setTrashed(true);
     
+    // === CẬP NHẬT GOOGLE SHEET ===
+    try {
+      var sheet = getWorkingSheet();
+      var headers = sheet.getRange(1, 1, 1, sheet.getLastColumn()).getValues()[0];
+      
+      var colTrangThai = -1, colSoQD = -1, colNgayQD = -1;
+      
+      // Tìm vị trí các cột
+      for (var c = 0; c < headers.length; c++) {
+        var hName = (headers[c] || '').toString().toLowerCase().trim();
+        if (hName === 'trạng thái') colTrangThai = c + 1; // getRange dùng 1-indexed
+        if (hName.indexOf('số qđ') !== -1 || hName.indexOf('số quyết định') !== -1) colSoQD = c + 1;
+        if (hName.indexOf('ngày qđ') !== -1 || hName.indexOf('ngày quyết định') !== -1) colNgayQD = c + 1;
+      }
+      
+      // Nếu chưa có cột Số QĐ / Ngày QĐ thì tạo thêm ở cuối
+      var nextCol = headers.length + 1;
+      if (colSoQD === -1) {
+        colSoQD = nextCol++;
+        sheet.getRange(1, colSoQD).setValue('Số Quyết Định').setFontWeight('bold').setBackground('#f3f4f6');
+      }
+      if (colNgayQD === -1) {
+        colNgayQD = nextCol++;
+        sheet.getRange(1, colNgayQD).setValue('Ngày Quyết Định').setFontWeight('bold').setBackground('#f3f4f6');
+      }
+      
+      // Update từng sinh viên
+      for (var s = 0; s < selectedStudents.length; s++) {
+        var rIdx = selectedStudents[s].rowIdx;
+        if (rIdx) {
+          if (colTrangThai !== -1) sheet.getRange(rIdx, colTrangThai).setValue('Đã duyệt');
+          sheet.getRange(rIdx, colSoQD).setValue(soQD);
+          sheet.getRange(rIdx, colNgayQD).setValue(ngayQD_ngan); 
+        }
+      }
+    } catch(sheetErr) {
+      // Bỏ qua lỗi cập nhật sheet để không làm vỡ luồng xuất file Word
+      Logger.log("Lỗi cập nhật sheet: " + sheetErr.toString());
+    }
+    // ==============================
+    
     return { success: true, url: docxFile.getUrl() };
   } catch(e) {
     return { success: false, message: e.toString() };
