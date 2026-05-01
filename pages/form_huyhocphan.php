@@ -48,7 +48,7 @@ include __DIR__ . '/../includes/components/tabs_nav.php';
 
 <?php if (!$isDotMo): ?>
 <!-- === MÀN HÌNH KHÓA: Đợt đã đóng === -->
-<div class="notice-card" style="text-align: center; padding: 40px 20px; background: #fff; border: 1px solid var(--border); border-radius: 12px; margin-bottom: 24px; display: flex; flex-direction: column; align-items: center;">
+<div class="notice-card" style="text-align: center; padding: 40px 20px; background: var(--input-bg); border: 1px solid var(--border); border-radius: 12px; margin-bottom: 24px; display: flex; flex-direction: column; align-items: center;">
     <div style="width: 64px; height: 64px; background: rgba(100, 116, 139, 0.1); color: #64748b; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 2rem; margin-bottom: 20px;">
         <i class="fas fa-calendar-times"></i>
     </div>
@@ -65,7 +65,7 @@ include __DIR__ . '/../includes/components/tabs_nav.php';
 
 <?php elseif ($daNopDon): ?>
 <!-- === ĐÃ NỘP ĐƠN: Thông báo xác nhận === -->
-<div class="notice-card" style="text-align: center; padding: 40px 20px; background: #fff; border: 1px solid var(--border); border-radius: 12px; margin-bottom: 24px; display: flex; flex-direction: column; align-items: center;">
+<div class="notice-card" style="text-align: center; padding: 40px 20px; background: var(--input-bg); border: 1px solid var(--border); border-radius: 12px; margin-bottom: 24px; display: flex; flex-direction: column; align-items: center;">
     <div style="width: 64px; height: 64px; background: rgba(20, 184, 166, 0.1); color: var(--primary); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 2rem; margin-bottom: 20px;">
         <i class="fas fa-check-circle"></i>
     </div>
@@ -94,7 +94,7 @@ include __DIR__ . '/../includes/components/tabs_nav.php';
         <label>Tìm kiếm môn học <span style="font-weight:400; text-transform: none; color: var(--text-light);">(Gõ mã hoặc tên môn)</span></label>
         <div style="position: relative;">
             <input type="text" id="courseSearchInput" placeholder="VD: INT123 hoặc Toán cao cấp..."
-                   style="width:100%; padding:12px 16px 12px 40px; border:1.5px solid var(--border); border-radius:10px; font-family:'Inter',sans-serif; font-size:0.9rem; color:var(--text-dark); background:#fff; outline:none; transition:var(--transition);">
+                   style="width:100%; padding:12px 16px 12px 40px; border:1.5px solid var(--border); border-radius:10px; font-family:'Inter',sans-serif; font-size:0.9rem; color:var(--text-dark); background:var(--input-bg); outline:none; transition:var(--transition);">
             <i class="fas fa-search" style="position:absolute; left:14px; top:50%; transform:translateY(-50%); color:var(--text-light); font-size:0.85rem;"></i>
         </div>
         <!-- Dropdown kết quả tìm kiếm -->
@@ -256,7 +256,7 @@ AppForm.handleSubmit('formHuyHocPhan', 'api/api_submit_huyhocphan.php');
 $lichSuRendered = [];
 if (!empty($lichSuDon)) {
     foreach ($lichSuDon as $idx => $don) {
-        $don['_rbg'] = $idx % 2 === 0 ? '#fff' : '#f8fafc';
+        $don['_rbg'] = $idx % 2 === 0 ? 'transparent' : 'var(--hover-bg)';
         $lichSuRendered[] = $don;
     }
 }
@@ -374,7 +374,7 @@ if (!empty($lichSuDon)) {
     .hhp-history-cards { display: flex; flex-direction: column; gap: 12px; }
 }
 .hhp-card {
-    background: #fff;
+    background: var(--card-bg);
     border: 1px solid var(--border);
     border-radius: 14px;
     padding: 16px;
@@ -386,7 +386,7 @@ if (!empty($lichSuDon)) {
     align-items: center;
     margin-bottom: 12px;
     padding-bottom: 10px;
-    border-bottom: 1px solid #f1f5f9;
+    border-bottom: 1px solid var(--border);
 }
 .hhp-card-dot {
     font-weight: 700;

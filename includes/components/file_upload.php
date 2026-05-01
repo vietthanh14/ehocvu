@@ -35,7 +35,7 @@ $idPrefix = $inputName . '_';
     transition: var(--transition);
     cursor: pointer;
     overflow: hidden;
-    background: #fff;
+    background: rgba(255, 255, 255, 0.03);
 }
 .file-upload-area:hover, .file-upload-area.drag-over {
     border-color: var(--primary-light);

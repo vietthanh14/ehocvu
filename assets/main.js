@@ -152,3 +152,25 @@ const AppForm = {
         });
     }
 };
+
+// === Quản lý Theme (Light/Dark Mode) ===
+document.addEventListener('DOMContentLoaded', function() {
+    const themeBtn = document.getElementById('themeToggleBtn');
+    const themeIcon = document.getElementById('themeToggleIcon');
+
+    if (themeBtn && themeIcon) {
+        // Cập nhật icon ban đầu dựa trên theme đã lưu
+        const currentTheme = document.documentElement.getAttribute('data-theme') || 'light';
+        themeIcon.className = currentTheme === 'dark' ? 'fas fa-sun' : 'fas fa-moon';
+
+        // Xử lý sự kiện click
+        themeBtn.addEventListener('click', function() {
+            const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
+            const newTheme = isDark ? 'light' : 'dark';
+            
+            document.documentElement.setAttribute('data-theme', newTheme);
+            localStorage.setItem('theme', newTheme);
+            themeIcon.className = newTheme === 'dark' ? 'fas fa-sun' : 'fas fa-moon';
+        });
+    }
+});

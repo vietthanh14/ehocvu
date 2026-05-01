@@ -27,11 +27,11 @@ $student = $_SESSION['student'];
             </div>
 
             <?php if (!empty($student['thong_bao_rieng'])): ?>
-            <div class="notice-card" style="background: rgba(239, 68, 68, 0.1); border: 1px solid rgba(239, 68, 68, 0.3); border-left: 4px solid #ef4444; margin-bottom: 24px;">
-                <h6 style="color: #b91c1c; font-weight: 700; margin-bottom: 8px;">
+            <div class="notice-card" style="background: var(--notice-danger-bg); border: 1px solid var(--notice-danger-border); border-left: 4px solid var(--danger); margin-bottom: 24px;">
+                <h6 style="color: var(--notice-danger-text); font-weight: 700; margin-bottom: 8px;">
                     <i class="fas fa-exclamation-triangle" style="margin-right: 6px;"></i> Thông báo từ Phòng Đào tạo
                 </h6>
-                <div style="color: #991b1b; font-size: 0.95rem; line-height: 1.5;">
+                <div style="color: var(--notice-danger-text); font-size: 0.95rem; line-height: 1.5; opacity: 0.9;">
                     <?= $student['thong_bao_rieng'] ?>
                 </div>
             </div>
