@@ -53,6 +53,11 @@ if (empty($tieuDeDot)) {
     Response::error('Cấu hình đợt tốt nghiệp chưa đầy đủ. Vui lòng liên hệ Phòng Đào tạo.');
 }
 
+// === Kiểm tra danh sách được duyệt tốt nghiệp (Whitelist) ===
+if (!$service->isEligible($maSv)) {
+    Response::error('Bạn không có tên trong danh sách được công nhận tốt nghiệp đợt này. Vui lòng liên hệ Phòng Đào tạo nếu có sai sót.');
+}
+
 // === Chống double-submit ===
 Security::checkSessionLock('submit_ltn', 10, $maSv);
 

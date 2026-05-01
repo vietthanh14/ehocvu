@@ -43,6 +43,36 @@ class LeTotNghiepService {
     }
 
     /**
+     * Lấy danh sách mã sinh viên đủ điều kiện (có trong sheet DS_TotNghiep)
+     */
+    private function fetchEligibilityList(): array {
+        $values = $this->client->fetchSheetDataCached(
+            'ltn_eligibility_list',
+            SHEET_DS_TOT_NGHIEP,
+            CACHE_TTL_DS_TOT_NGHIEP,
+            true
+        );
+        
+        if (!$values) return [];
+        
+        $list = [];
+        foreach ($values as $row) {
+            if (!empty($row[0])) {
+                $list[] = strtolower(trim($row[0]));
+            }
+        }
+        return $list;
+    }
+
+    /**
+     * Kiểm tra sinh viên có đủ điều kiện đăng ký hay không
+     */
+    public function isEligible(string $maSv): bool {
+        $list = $this->fetchEligibilityList();
+        return in_array(strtolower(trim($maSv)), $list, true);
+    }
+
+    /**
      * Tìm bản ghi đăng ký của SV trong đợt hiện tại
      * 
      * Cấu trúc sheet 18 cột (A-R):

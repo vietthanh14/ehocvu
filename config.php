@@ -38,6 +38,7 @@ define('SHEET_HUY_HOC_PHAN_REQUESTS', 'HuyHocPhan_Requests');
 
 // Cấu hình tính năng Lễ Tốt Nghiệp (bao gồm cả đăng ký ép plastic / bản sao)
 define('SHEET_LE_TOT_NGHIEP_REQUESTS', 'LeTotNghiep_Requests');
+define('SHEET_DS_TOT_NGHIEP', 'DS_TotNghiep!A2:A');
 
 // URL của Google Apps Script Web App (dùng để upload file đơn đăng ký)
 // Hướng dẫn: Xem file docs/upload_appscript.js → Deploy trên script.google.com → Dán URL vào đây
@@ -52,3 +53,4 @@ define('CACHE_TTL_REQUESTS',         120);   // 2 phút
 define('CACHE_TTL_COURSES_CATALOG',  86400); // 24 giờ
 define('CACHE_TTL_HHP_REQUESTS',     180);   // 3 phút
 define('CACHE_TTL_LTN_REQUESTS',     180);   // 3 phút
+define('CACHE_TTL_DS_TOT_NGHIEP',    900);   // 15 phút

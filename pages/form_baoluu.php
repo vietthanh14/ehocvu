@@ -42,14 +42,7 @@ include __DIR__ . '/../includes/components/tabs_nav.php';
 <div id="baoluu-form" class="tab-pane active">
 
 <?php if (!empty($warnings)): ?>
-<div class="notice-card" style="margin-bottom: 24px; background: linear-gradient(135deg, #fef2f2, #fee2e2); border-color: #fca5a5;">
-    <h6 style="color: #991b1b;"><i class="fas fa-exclamation-circle"></i> LƯU Ý KHI NỘP HỒ SƠ</h6>
-    <ul>
-        <?php foreach ($warnings as $w): ?>
-            <li style="color: #991b1b; padding-bottom: 6px;"><?= $w ?></li>
-        <?php endforeach; ?>
-    </ul>
-</div>
+    <?= UIHelper::renderNoticeCard('danger', 'LƯU Ý KHI NỘP HỒ SƠ', $warnings) ?>
 <?php endif; ?>
 
 <form id="requestForm" method="POST" action="api/api_submit_baoluu.php" enctype="multipart/form-data">
