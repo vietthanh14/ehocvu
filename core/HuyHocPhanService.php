@@ -9,50 +9,17 @@ class HuyHocPhanService {
     }
 
     public function getHuyHocPhanConfig(): array {
-        $cacheKey = 'config_huyhocphan';
-        $cached = $this->client->getCacheManager()->get($cacheKey, CACHE_TTL_CONFIG_HHP);
-        if ($cached !== null) {
-            return $cached;
-        }
+        require_once __DIR__ . '/ConfigService.php';
+        $configService = new ConfigService();
+        $raw = $configService->getFeatureConfig('huyhocphan');
 
-        try {
-            $response = $this->client->getService()->spreadsheets_values->get($this->client->getSpreadsheetId(), SHEET_CONFIG_HUY_HOC_PHAN);
-            $values = $response->getValues() ?: [];
-
-            $activeRow = [];
-            // Tìm đợt có trạng thái "Mở"
-            foreach ($values as $row) {
-                if (mb_strtolower(trim($row[0] ?? '')) === 'mở') {
-                    $activeRow = $row;
-                    break;
-                }
-            }
-
-            // Nếu không có đợt nào "Mở", lấy đợt cuối cùng trong danh sách
-            if (empty($activeRow) && !empty($values)) {
-                $activeRow = end($values);
-            }
-
-            $config = [
-                'TrangThai'    => trim($activeRow[0] ?? 'Đóng'),
-                'TieuDeDot'    => trim($activeRow[1] ?? ''),
-                'TuNgay'       => trim($activeRow[2] ?? ''),
-                'DenNgay'      => trim($activeRow[3] ?? ''),
-                'ThongBaoDong' => trim($activeRow[4] ?? 'Hệ thống hiện không mở đợt đăng ký hủy học phần.'),
-            ];
-
-            $this->client->getCacheManager()->set($cacheKey, $config);
-            return $config;
-        } catch (Exception $e) {
-            error_log("Google Sheets Error getHuyHocPhanConfig: " . $e->getMessage());
-            return [
-                'TrangThai'    => 'Đóng',
-                'TieuDeDot'    => '',
-                'TuNgay'       => '',
-                'DenNgay'      => '',
-                'ThongBaoDong' => 'Không thể tải cấu hình. Vui lòng thử lại sau.',
-            ];
-        }
+        return [
+            'TrangThai'    => $raw['TrangThai'],
+            'TieuDeDot'    => $raw['TieuDeDot'],
+            'TuNgay'       => $raw['TuNgay'],
+            'DenNgay'      => $raw['DenNgay'],
+            'ThongBaoDong' => 'Hệ thống hiện không mở đợt đăng ký hủy học phần.',
+        ];
     }
 
     public function getCoursesCatalog(): array {

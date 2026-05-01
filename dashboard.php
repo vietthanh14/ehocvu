@@ -8,7 +8,7 @@ if (!isset($_SESSION['student'])) {
     exit;
 }
 
-$allowedPages = ['home', 'baoluu', 'huyhocphan'];
+$allowedPages = ['home', 'baoluu', 'huyhocphan', 'letotnghiep'];
 $page = isset($_GET['page']) ? $_GET['page'] : 'home';
 if (!in_array($page, $allowedPages)) {
     $page = 'home';
@@ -62,6 +62,15 @@ $student = $_SESSION['student'];
             </div>
             <div class="card-modern" style="padding: 28px; margin-bottom: 24px;">
                 <?php include 'pages/form_huyhocphan.php'; ?>
+            </div>
+
+        <?php elseif ($page == 'letotnghiep'): ?>
+            <div class="page-header">
+                <h2>Đăng ký dự Lễ Tốt nghiệp</h2>
+                <span class="breadcrumb-text"><i class="fas fa-home"></i> Trang chủ / Lễ Tốt nghiệp</span>
+            </div>
+            <div class="card-modern" style="padding: 28px; margin-bottom: 24px;">
+                <?php include 'pages/form_letotnghiep.php'; ?>
             </div>
 
         <?php endif; ?>

@@ -8,7 +8,7 @@ date_default_timezone_set('Asia/Ho_Chi_Minh');
 session_set_cookie_params([
     'lifetime' => 0,
     'path'     => '/',
-    'httponly' => true,
+    'httponly'  => true,
     'samesite' => 'Lax'
 ]);
 
@@ -26,10 +26,18 @@ define('SHEET_EXPELLED_LIST', 'Sheet2');
 define('SHEET_REQUEST_LIST', 'Sheet3');
 define('SHEET_NOTIFICATION', 'ThongBao');
 
+// === Cấu hình đợt đăng ký (Sheet Config thống nhất) ===
+// Sheet "Config" chứa tất cả cấu hình đợt, mỗi chức năng 1 dòng
+// Cấu trúc: ChucNang | TrangThai | TieuDe | TuNgay | DenNgay
+define('SHEET_CONFIG', 'Config!A2:E');
+define('CACHE_TTL_CONFIG',            300);   // 5 phút
+
 // Cấu hình tính năng Hủy học phần
-define('SHEET_CONFIG_HUY_HOC_PHAN', 'Config_HuyHocPhan!A2:E');
 define('SHEET_COURSES_CATALOG', 'DanhSachMonHoc!A2:B');
 define('SHEET_HUY_HOC_PHAN_REQUESTS', 'HuyHocPhan_Requests');
+
+// Cấu hình tính năng Lễ Tốt Nghiệp (bao gồm cả đăng ký ép plastic / bản sao)
+define('SHEET_LE_TOT_NGHIEP_REQUESTS', 'LeTotNghiep_Requests');
 
 // URL của Google Apps Script Web App (dùng để upload file đơn đăng ký)
 // Hướng dẫn: Xem file docs/upload_appscript.js → Deploy trên script.google.com → Dán URL vào đây
@@ -41,6 +49,6 @@ define('CACHE_TTL_STUDENT_LIST',     600);   // 10 phút
 define('CACHE_TTL_EXPELLED_LIST',    900);   // 15 phút
 define('CACHE_TTL_NOTIFICATIONS',    120);   // 2 phút
 define('CACHE_TTL_REQUESTS',         120);   // 2 phút
-define('CACHE_TTL_CONFIG_HHP',       300);   // 5 phút
 define('CACHE_TTL_COURSES_CATALOG',  86400); // 24 giờ
 define('CACHE_TTL_HHP_REQUESTS',     180);   // 3 phút
+define('CACHE_TTL_LTN_REQUESTS',     180);   // 3 phút
