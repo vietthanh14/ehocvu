@@ -24,22 +24,36 @@ class DriveUploader {
             'maSv'       => $maSv
         ]);
 
-        $ch = curl_init();
-        curl_setopt_array($ch, [
-            CURLOPT_URL            => $scriptUrl,
-            CURLOPT_POST           => true,
-            CURLOPT_POSTFIELDS     => $payload,
-            CURLOPT_HTTPHEADER     => ['Content-Type: application/json'],
-            CURLOPT_RETURNTRANSFER => true,
-            CURLOPT_FOLLOWLOCATION => true,  // Apps Script redirects
-            CURLOPT_TIMEOUT        => 60,
-            CURLOPT_SSL_VERIFYPEER => true,
-        ]);
+        $maxRetries = 3;
+        $response = false;
+        $httpCode = 0;
+        $error = '';
 
-        $response = curl_exec($ch);
-        $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
-        $error = curl_error($ch);
-        curl_close($ch);
+        for ($attempt = 1; $attempt <= $maxRetries; $attempt++) {
+            $ch = curl_init();
+            curl_setopt_array($ch, [
+                CURLOPT_URL            => $scriptUrl,
+                CURLOPT_POST           => true,
+                CURLOPT_POSTFIELDS     => $payload,
+                CURLOPT_HTTPHEADER     => ['Content-Type: application/json'],
+                CURLOPT_RETURNTRANSFER => true,
+                CURLOPT_FOLLOWLOCATION => true,  // Apps Script redirects
+                CURLOPT_TIMEOUT        => 60,
+                CURLOPT_SSL_VERIFYPEER => true,
+            ]);
+
+            $response = curl_exec($ch);
+            $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+            $error = curl_error($ch);
+            curl_close($ch);
+
+            // Retry on HTTP errors (like 429 Too Many Requests or 500/503)
+            if ($httpCode >= 400 && $attempt < $maxRetries) {
+                sleep($attempt);
+                continue;
+            }
+            break; // Success or max retries reached
+        }
 
         if ($error) {
             error_log("cURL error uploading to Drive: $error");
