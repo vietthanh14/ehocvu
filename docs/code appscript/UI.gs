@@ -1,6 +1,8 @@
 function onOpen() {
   SpreadsheetApp.getUi().createMenu('🛠️ Admin')
     .addItem('Mở Giao Diện Tạo Quyết Định', 'openAdminUI')
+    .addSeparator()
+    .addItem('Đồng Bộ Thông Tin Sinh Viên', 'syncAllStudentProfiles')
     .addToUi();
 }
 

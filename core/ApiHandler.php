@@ -21,7 +21,7 @@ class ApiHandler {
      * @param array|null $allowedMimeTypes Danh sách MIME hợp lệ
      * @return void Sẽ ném ra Response::error() nếu file không hợp lệ
      */
-    public static function validateUploadFile(array $file, int $maxSizeMB = 5, ?array $allowedMimeTypes = null): void {
+    public static function validateUploadFile(array $file, int $maxSizeMB = 15, ?array $allowedMimeTypes = null): void {
         if ($file['error'] !== UPLOAD_ERR_OK) {
             Response::error('Lỗi khi tải file lên. Mã lỗi: ' . $file['error']);
         }

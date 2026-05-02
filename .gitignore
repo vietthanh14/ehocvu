@@ -11,3 +11,12 @@
 # IDE
 .vscode/
 .idea/
+
+# Agent files
+/.agent/
+/.agents/
+.gemini/
+
+# Graphify
+graphify-out/
+test.txt

@@ -195,56 +195,6 @@ class StudentRepository {
             
             // Clear cache để fetch lại data mới nhất từ sheet
             $this->client->getCacheManager()->clear('student_list');
-            
-            // --- SYNC PHONE TO SHEET 3 ---
-            try {
-                $reqValues = $this->fetchRequestListSheet();
-                if (!empty($reqValues)) {
-                    // Column index 4 is SDT for Request List
-                    $SDT_COL_INDEX = 4;
-                    $MA_SV_COL_INDEX = 1;
-
-                    $sheetParts3 = explode('!', SHEET_REQUEST_LIST);
-                    $sheet3Name = $sheetParts3[0];
-                    $sdtColChar3 = chr(65 + $SDT_COL_INDEX); // 'E'
-                    
-                    $batchData = [];
-                    $hasChange = false;
-
-                    foreach ($reqValues as $i => $r) {
-                        if ($i === 0) continue;
-                        $reqMaSv = isset($r[$MA_SV_COL_INDEX]) ? trim($r[$MA_SV_COL_INDEX]) : '';
-                        if (strtolower($reqMaSv) === strtolower(trim($maSv))) {
-                            $rowNum = $i + 1;
-                            $range3 = $sheet3Name . '!' . $sdtColChar3 . $rowNum;
-                            $batchData[] = new \Google_Service_Sheets_ValueRange([
-                                'range' => $range3,
-                                'values' => [[$newPhone]]
-                            ]);
-                            
-                            while (count($reqValues[$i]) <= $SDT_COL_INDEX) {
-                                $reqValues[$i][] = '';
-                            }
-                            $reqValues[$i][$SDT_COL_INDEX] = $newPhone;
-                            $hasChange = true;
-                        }
-                    }
-
-                    if (!empty($batchData)) {
-                        $batchBody = new \Google_Service_Sheets_BatchUpdateValuesRequest([
-                            'valueInputOption' => 'USER_ENTERED',
-                            'data' => $batchData
-                        ]);
-                        $this->client->getService()->spreadsheets_values->batchUpdate($this->client->getSpreadsheetId(), $batchBody);
-                        
-                        if ($hasChange) {
-                            $this->client->getCacheManager()->clear('requests_all');
-                        }
-                    }
-                }
-            } catch (Exception $eSync) {
-                error_log("Google Sheets Sync Error (Sheet3): " . $eSync->getMessage());
-            }
 
             return true;
         } catch (Exception $e) {
